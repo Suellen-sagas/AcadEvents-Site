@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
 Meu Perfil | AcadEvents
@@ -97,7 +98,83 @@ Meu Perfil | AcadEvents
                 </div>
 
             {% endif %}
+                <div
+    id="solana-wallet-area"
+    class="solana-wallet-card"
+    data-save-url="{% url 'salvar_carteira_solana' %}"
+    data-remove-url="{% url 'remover_carteira_solana' %}"
+    data-challenge-url="{% url 'gerar_desafio_carteira' %}"
+    data-verify-url="{% url 'verificar_carteira_solana' %}"
+>
 
+    <small>
+        CARTEIRA SOLANA
+    </small>
+
+    {% if user.carteira_solana %}
+
+        <div class="solana-connected">
+
+            <span class="solana-status">
+                ● CONECTADA
+            </span>
+
+            <strong
+                title="{{ user.carteira_solana }}"
+            >
+                {{ user.carteira_solana|slice:":6" }}...{{ user.carteira_solana|slice:"-6:" }}
+            </strong>
+
+            {% if user.carteira_solana_verificada %}
+
+    <span class="wallet-verified">
+        ✓ Carteira verificada
+    </span>
+
+{% else %}
+
+    <span class="wallet-pending">
+        Verificação pendente
+    </span>
+
+    <button
+        type="button"
+        id="verify-solana-wallet"
+        class="wallet-verify"
+    >
+        Verificar carteira
+    </button>
+
+{% endif %}
+
+            <button
+                type="button"
+                id="disconnect-solana-wallet"
+                class="wallet-disconnect"
+            >
+                Desconectar
+            </button>
+
+        </div>
+
+    {% else %}
+
+        <p>
+            Conecte uma carteira para utilizar
+            os recursos blockchain do AcadEvents.
+        </p>
+
+        <button
+            type="button"
+            id="connect-solana-wallet"
+            class="wallet-connect"
+        >
+            Conectar carteira Solana
+        </button>
+
+    {% endif %}
+
+</div>
 
             <a
                 href="{% url 'alterar_senha' %}"
@@ -137,5 +214,10 @@ Meu Perfil | AcadEvents
     </div>
 
 </section>
+
+<script
+    type="module"
+    src="{% static 'js/wallet.bundle.js' %}"
+></script>
 
 {% endblock %}

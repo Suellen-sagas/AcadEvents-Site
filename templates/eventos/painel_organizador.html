@@ -20,7 +20,7 @@ Painel do Organizador | AcadEvents
             </h1>
 
             <p>
-                Gerencie seus eventos, inscrições e participantes.
+                Acompanhe seus eventos, inscrições e resultados.
             </p>
         </div>
 
@@ -34,73 +34,196 @@ Painel do Organizador | AcadEvents
     </div>
 
 
-    <div class="dashboard-stats">
+    <div class="organizer-dashboard">
 
-        <div class="dashboard-stat">
+        <div class="organizer-dashboard-card">
 
-            <span class="stat-label">
-                EVENTOS
-            </span>
+            <span>EVENTOS</span>
 
             <strong>
                 {{ total_eventos }}
             </strong>
 
-            <p>
-                Eventos cadastrados
-            </p>
+            <small>
+                {{ eventos_ativos }} ativos
+            </small>
 
         </div>
 
 
-        <div class="dashboard-stat">
+        <div class="organizer-dashboard-card">
 
-            <span class="stat-label">
-                INSCRIÇÕES
-            </span>
+            <span>INSCRIÇÕES</span>
 
             <strong>
                 {{ total_inscricoes }}
             </strong>
 
-            <p>
-                Participantes inscritos
-            </p>
+            <small>
+                participantes
+            </small>
 
         </div>
 
 
-        <div class="dashboard-stat stat-highlight">
+        <div class="organizer-dashboard-card">
 
-            <span class="stat-label">
-                ACADEVENTS
-            </span>
+            <span>PRESENÇAS</span>
 
             <strong>
-                AE
+                {{ total_presentes }}
             </strong>
 
-            <p>
-                Gestão acadêmica simplificada
-            </p>
+            <small>
+                confirmadas
+            </small>
+
+        </div>
+
+
+        <div class="organizer-dashboard-card organizer-dashboard-highlight">
+
+            <span>TAXA DE PRESENÇA</span>
+
+            <strong>
+                {{ taxa_presenca }}%
+            </strong>
+
+            <small>
+                participação geral
+            </small>
 
         </div>
 
     </div>
 
 
-    <div class="organizer-section-header">
+    {% if eventos_em_andamento %}
+
+        <div class="organizer-category-header">
+
+            <div>
+                <span class="live-label">
+                    ● ACONTECENDO AGORA
+                </span>
+
+                <h2>
+                    Eventos em andamento
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="organizer-events-grid">
+
+            {% for evento in eventos_em_andamento %}
+
+                <article class="organizer-event-card">
+
+                    <div class="organizer-event-image">
+
+                        {% if evento.imagem %}
+
+                            <img
+                                src="{{ evento.imagem.url }}"
+                                alt="{{ evento.titulo }}"
+                            >
+
+                        {% else %}
+
+                            <div class="organizer-event-placeholder">
+                                AE
+                            </div>
+
+                        {% endif %}
+
+                        <span class="event-live">
+                            AO VIVO
+                        </span>
+
+                    </div>
+
+
+                    <div class="organizer-event-content">
+
+                        <span class="student-badge">
+                            {{ evento.get_categoria_display }}
+                        </span>
+
+                        <h3>
+                            {{ evento.titulo }}
+                        </h3>
+
+
+                        <div class="organizer-event-info">
+
+                            <div>
+                                <small>INSCRITOS</small>
+
+                                <strong>
+                                    {{ evento.inscricoes.count }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>CAPACIDADE</small>
+
+                                <strong>
+                                    {{ evento.limite_vagas }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>TÉRMINO</small>
+
+                                <strong>
+                                    {{ evento.data_fim|date:"H:i" }}
+                                </strong>
+                            </div>
+
+                        </div>
+
+
+                        <div class="organizer-actions">
+
+                            <a
+                                href="{% url 'eventos:gerenciar' evento.id %}"
+                                class="organizer-primary"
+                            >
+                                Gerenciar
+                            </a>
+
+                            <a
+                                href="{% url 'eventos:relatorio' evento.id %}"
+                                class="organizer-secondary"
+                            >
+                                Relatório
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="organizer-category-header">
 
         <div>
-
             <span class="section-tag">
-                GERENCIAMENTO
+                AGENDA
             </span>
 
             <h2>
-                Meus Eventos
+                Próximos eventos
             </h2>
-
         </div>
 
     </div>
@@ -108,7 +231,7 @@ Painel do Organizador | AcadEvents
 
     <div class="organizer-events-grid">
 
-        {% for evento in eventos %}
+        {% for evento in proximos_eventos %}
 
             <article class="organizer-event-card">
 
@@ -129,20 +252,9 @@ Painel do Organizador | AcadEvents
 
                     {% endif %}
 
-
-                    {% if evento.ativo %}
-
-                        <span class="event-active">
-                            ATIVO
-                        </span>
-
-                    {% else %}
-
-                        <span class="event-inactive">
-                            INATIVO
-                        </span>
-
-                    {% endif %}
+                    <span class="event-active">
+                        ATIVO
+                    </span>
 
                 </div>
 
@@ -230,23 +342,119 @@ Painel do Organizador | AcadEvents
                 </div>
 
                 <h2>
-                    Nenhum evento criado
+                    Nenhum próximo evento
                 </h2>
 
                 <p>
-                    Crie seu primeiro evento e comece
-                    a receber inscrições pelo AcadEvents.
+                    Crie um evento para começar.
                 </p>
-
-                <a href="{% url 'eventos:criar' %}">
-                    Criar primeiro evento
-                </a>
 
             </div>
 
         {% endfor %}
 
     </div>
+
+
+    {% if eventos_encerrados %}
+
+        <div class="organizer-category-header organizer-history">
+
+            <div>
+                <span class="section-tag">
+                    HISTÓRICO
+                </span>
+
+                <h2>
+                    Eventos encerrados
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="organizer-events-grid">
+
+            {% for evento in eventos_encerrados %}
+
+                <article class="organizer-event-card organizer-completed">
+
+                    <div class="organizer-event-content">
+
+                        <div class="organizer-event-top">
+
+                            <span class="student-badge">
+                                {{ evento.get_categoria_display }}
+                            </span>
+
+                            <span class="event-finished-badge">
+                                FINALIZADO
+                            </span>
+
+                        </div>
+
+
+                        <h3>
+                            {{ evento.titulo }}
+                        </h3>
+
+
+                        <div class="organizer-event-info">
+
+                            <div>
+                                <small>DATA</small>
+
+                                <strong>
+                                    {{ evento.data_inicio|date:"d/m/Y" }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>INSCRITOS</small>
+
+                                <strong>
+                                    {{ evento.inscricoes.count }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>CARGA</small>
+
+                                <strong>
+                                    {{ evento.carga_horaria }}h
+                                </strong>
+                            </div>
+
+                        </div>
+
+
+                        <div class="organizer-actions">
+
+                            <a
+                                href="{% url 'eventos:gerenciar' evento.id %}"
+                                class="organizer-secondary"
+                            >
+                                Gerenciar
+                            </a>
+
+                            <a
+                                href="{% url 'eventos:relatorio' evento.id %}"
+                                class="organizer-primary"
+                            >
+                                Ver relatório
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
 
 </section>
 

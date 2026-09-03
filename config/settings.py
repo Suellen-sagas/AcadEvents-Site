@@ -23,9 +23,33 @@ load_dotenv(dotenv_path=BASE_DIR / '.env')
 
 DEBUG = os.getenv(
     'DEBUG',
-    'True'
+    'False'
 ).lower() == 'true'
 
+
+RAILWAY_PUBLIC_DOMAIN = os.getenv(
+    'RAILWAY_PUBLIC_DOMAIN'
+)
+
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+]
+
+
+CSRF_TRUSTED_ORIGINS = []
+
+
+if RAILWAY_PUBLIC_DOMAIN:
+
+    ALLOWED_HOSTS.append(
+        RAILWAY_PUBLIC_DOMAIN
+    )
+
+    CSRF_TRUSTED_ORIGINS.append(
+        f'https://{RAILWAY_PUBLIC_DOMAIN}'
+    )
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
@@ -63,12 +87,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -98,11 +125,31 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+
+        'NAME': os.getenv(
+            'PGDATABASE',
+            os.getenv('DB_NAME')
+        ),
+
+        'USER': os.getenv(
+            'PGUSER',
+            os.getenv('DB_USER')
+        ),
+
+        'PASSWORD': os.getenv(
+            'PGPASSWORD',
+            os.getenv('DB_PASSWORD')
+        ),
+
+        'HOST': os.getenv(
+            'PGHOST',
+            os.getenv('DB_HOST', 'localhost')
+        ),
+
+        'PORT': os.getenv(
+            'PGPORT',
+            os.getenv('DB_PORT', '5432')
+        ),
     }
 }
 
@@ -146,6 +193,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MEDIA_URL = 'media/'

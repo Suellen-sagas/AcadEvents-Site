@@ -25,4 +25,10 @@ urlpatterns = [
         name='validar'
     ),
 
+    path(
+    'solana/<int:certificado_id>/dados/',
+    views.dados_registro_solana,
+    name='dados_registro_solana'
+    ),
+
 ]

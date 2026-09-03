@@ -1,0 +1,32 @@
+{
+  "name": "acadevents",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Suellen-sagas/AcadEvents-Site.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Suellen-sagas/AcadEvents-Site/issues"
+  },
+  "homepage": "https://github.com/Suellen-sagas/AcadEvents-Site#readme",
+  "dependencies": {
+    "@solana-commerce/connector": "^0.1.0",
+    "@solana-program/memo": "^0.13.1",
+    "@solana/kit": "^8.2.0",
+    "bs58": "^6.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

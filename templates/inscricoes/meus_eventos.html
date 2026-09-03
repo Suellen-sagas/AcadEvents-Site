@@ -10,16 +10,92 @@ Meus Eventos | AcadEvents
 
     <div class="page-heading">
 
-        <div>
-            <span class="section-tag">
-                MINHA JORNADA
+        <span class="section-tag">
+            MINHA JORNADA
+        </span>
+
+        <h1>
+            Meus Eventos
+        </h1>
+
+        <p>
+            Acompanhe suas inscrições, presenças e certificados.
+        </p>
+
+    </div>
+
+
+    <!-- RESUMO -->
+
+    <div class="student-dashboard-stats">
+
+        <div class="student-dashboard-stat">
+
+            <span>
+                INSCRIÇÕES
             </span>
 
-            <h1>Meus Eventos</h1>
+            <strong>
+                {{ total_inscricoes }}
+            </strong>
 
-            <p>
-                Acompanhe suas inscrições e acesse seu QR Code.
-            </p>
+            <small>
+                total de eventos
+            </small>
+
+        </div>
+
+
+        <div class="student-dashboard-stat">
+
+            <span>
+                PRÓXIMOS
+            </span>
+
+            <strong>
+                {{ total_proximos }}
+            </strong>
+
+            <small>
+                para participar
+            </small>
+
+        </div>
+
+
+        <div class="student-dashboard-stat">
+
+            <span>
+                CONCLUÍDOS
+            </span>
+
+            <strong>
+                {{ total_concluidos }}
+            </strong>
+
+            <small>
+                eventos finalizados
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRÓXIMOS -->
+
+    <div class="student-section-header">
+
+        <div>
+
+            <span class="section-tag">
+                AGENDA
+            </span>
+
+            <h2>
+                Próximos eventos
+            </h2>
+
         </div>
 
     </div>
@@ -27,7 +103,7 @@ Meus Eventos | AcadEvents
 
     <div class="student-grid">
 
-        {% for inscricao in inscricoes %}
+        {% for inscricao in proximos_eventos %}
 
             <article class="student-card">
 
@@ -53,9 +129,18 @@ Meus Eventos | AcadEvents
 
                 <div class="student-card-content">
 
-                    <span class="student-badge">
-                        {{ inscricao.evento.get_categoria_display }}
-                    </span>
+                    <div class="student-card-top">
+
+                        <span class="student-badge">
+                            {{ inscricao.evento.get_categoria_display }}
+                        </span>
+
+                        <span class="student-mode">
+                            {{ inscricao.evento.get_modalidade_display }}
+                        </span>
+
+                    </div>
+
 
                     <h2>
                         {{ inscricao.evento.titulo }}
@@ -72,6 +157,7 @@ Meus Eventos | AcadEvents
                             </strong>
                         </div>
 
+
                         <div>
                             <small>HORÁRIO</small>
 
@@ -80,11 +166,12 @@ Meus Eventos | AcadEvents
                             </strong>
                         </div>
 
+
                         <div>
-                            <small>MODALIDADE</small>
+                            <small>CARGA</small>
 
                             <strong>
-                                {{ inscricao.evento.get_modalidade_display }}
+                                {{ inscricao.evento.carga_horaria }}h
                             </strong>
                         </div>
 
@@ -93,15 +180,17 @@ Meus Eventos | AcadEvents
 
                     <div class="qr-area">
 
-                        <span>MEU QR CODE</span>
+                        <span>
+                            MEU QR CODE
+                        </span>
 
                         <img
                             src="{% url 'presencas:qr' inscricao.id %}"
-                            alt="QR Code da inscrição"
+                            alt="QR Code"
                         >
 
                         <small>
-                            Apresente este código no evento.
+                            Apresente este código no check-in.
                         </small>
 
                     </div>
@@ -139,6 +228,7 @@ Meus Eventos | AcadEvents
 
             </article>
 
+
         {% empty %}
 
             <div class="empty-student">
@@ -148,12 +238,11 @@ Meus Eventos | AcadEvents
                 </div>
 
                 <h2>
-                    Você ainda não possui inscrições
+                    Nenhum próximo evento
                 </h2>
 
                 <p>
-                    Explore os eventos disponíveis e encontre
-                    sua próxima experiência acadêmica.
+                    Encontre uma nova experiência acadêmica para participar.
                 </p>
 
                 <a href="{% url 'home' %}">
@@ -165,6 +254,102 @@ Meus Eventos | AcadEvents
         {% endfor %}
 
     </div>
+
+
+    <!-- CONCLUÍDOS -->
+
+    {% if eventos_concluidos %}
+
+        <div class="student-section-header student-history-header">
+
+            <div>
+
+                <span class="section-tag">
+                    HISTÓRICO
+                </span>
+
+                <h2>
+                    Eventos concluídos
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="student-grid">
+
+            {% for inscricao in eventos_concluidos %}
+
+                <article class="student-card completed-event">
+
+                    <div class="student-card-content">
+
+                        <div class="student-card-top">
+
+                            <span class="student-badge">
+                                {{ inscricao.evento.get_categoria_display }}
+                            </span>
+
+                            <span class="event-finished-badge">
+                                FINALIZADO
+                            </span>
+
+                        </div>
+
+
+                        <h2>
+                            {{ inscricao.evento.titulo }}
+                        </h2>
+
+
+                        <p>
+                            {{ inscricao.evento.data_inicio|date:"d/m/Y" }}
+                            •
+                            {{ inscricao.evento.carga_horaria }}h
+                        </p>
+
+
+                        <div class="completed-status">
+
+                            {% if inscricao.presenca.confirmada %}
+
+                                <span class="presence-confirmed">
+                                    ✓ Presença confirmada
+                                </span>
+
+                            {% else %}
+
+                                <span class="presence-absent">
+                                    Ausente
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if inscricao.presenca.confirmada %}
+
+                            <a
+                                href="{% url 'certificados:meus_certificados' %}"
+                                class="primary-link"
+                            >
+                                Ver meu certificado
+                                <span>→</span>
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
 
 </section>
 

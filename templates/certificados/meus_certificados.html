@@ -87,7 +87,88 @@ Meus Certificados | AcadEvents
                         </span>
 
                     </div>
+                    <div class="blockchain-certificate">
 
+    <div class="blockchain-title">
+        <span>⛓</span>
+
+        <div>
+            <small>BLOCKCHAIN</small>
+            <strong>Solana Devnet</strong>
+        </div>
+    </div>
+
+
+    <div class="blockchain-data">
+
+        <div>
+            <small>HASH SHA-256</small>
+
+            <code title="{{ certificado.hash_certificado }}">
+                {{ certificado.hash_certificado|slice:":12" }}...{{ certificado.hash_certificado|slice:"-12:" }}
+            </code>
+        </div>
+
+
+        <div>
+            <small>STATUS</small>
+
+            {% if certificado.registrado_solana %}
+
+                <span class="blockchain-registered">
+                    ✓ Registrado na Solana
+                </span>
+
+            {% else %}
+
+                <span class="blockchain-pending">
+                    ● Aguardando registro
+                </span>
+
+            {% endif %}
+        </div>
+
+    </div>
+
+    {% if not certificado.registrado_solana %}
+
+    {% if user.carteira_solana_verificada %}
+
+        <button
+            type="button"
+            class="register-solana-button"
+            data-solana-url="{% url 'certificados:dados_registro_solana' certificado.id %}"
+            data-confirm-url="{% url 'certificados:confirmar_registro_solana' certificado.id %}"
+>
+        Registrar na Solana
+
+        </button>
+
+    {% else %}
+
+        <div class="solana-requirement">
+            🔒 Conecte e verifique sua carteira para registrar este certificado.
+        </div>
+
+    {% endif %}
+
+{% endif %}
+
+
+    {% if certificado.registrado_solana and certificado.solana_explorer_url %}
+
+        <a
+            href="{{ certificado.solana_explorer_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="solana-explorer-button"
+        >
+            Ver na Solana Explorer ↗
+        </a>
+
+    {% endif %}
+
+</div>
 
                     <a
                         href="{% url 'certificados:baixar' certificado.id %}"
@@ -124,5 +205,10 @@ Meus Certificados | AcadEvents
     </div>
 
 </section>
+
+<script
+    type="module"
+    src="{% static 'js/certificado_solana.bundle.js' %}"
+></script>
 
 {% endblock %}

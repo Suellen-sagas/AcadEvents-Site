@@ -72,4 +72,30 @@ urlpatterns = [
         ),
         name='password_reset_complete'
     ),
+
+    path(
+        'carteira-solana/salvar/',
+        views.salvar_carteira_solana,
+        
+        name='salvar_carteira_solana'
+),
+
+path(
+    'carteira-solana/remover/',
+    views.remover_carteira_solana,
+    
+    name='remover_carteira_solana'
+),
+path(
+    'carteira-solana/desafio/',
+    views.gerar_desafio_carteira,
+    name='gerar_desafio_carteira'
+),
+
+path(
+    'carteira-solana/verificar/',
+    views.verificar_carteira_solana,
+    name='verificar_carteira_solana'
+),
+
 ]

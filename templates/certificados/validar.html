@@ -1,56 +1,393 @@
 {% extends 'base.html' %}
 
-
 {% block title %}
 Validar Certificado | AcadEvents
 {% endblock %}
 
-
 {% block content %}
 
-<section>
+<section class="certificate-validation-page">
 
-    <h1>Certificado válido ✅</h1>
+    <div class="certificate-validation-container">
 
-    <p>
-        Este certificado foi emitido pelo AcadEvents.
-    </p>
+        <div class="validation-header">
 
-    <hr>
+            <span class="section-tag">
+                VALIDAÇÃO PÚBLICA
+            </span>
 
-    <h2>
-        {{ evento.titulo }}
-    </h2>
+            <h1>
+                Certificado AcadEvents
+            </h1>
 
-    <p>
-        <strong>Participante:</strong>
-        {{ estudante.get_full_name|default:estudante.username }}
-    </p>
+            <p>
+                Consulte a autenticidade deste certificado acadêmico.
+            </p>
 
-    <p>
-        <strong>Evento:</strong>
-        {{ evento.titulo }}
-    </p>
+        </div>
 
-    <p>
-        <strong>Data do evento:</strong>
-        {{ evento.data_inicio|date:"d/m/Y" }}
-    </p>
 
-    <p>
-        <strong>Carga horária:</strong>
-        {{ evento.carga_horaria }} horas
-    </p>
+        <!-- CERTIFICADO VÁLIDO -->
 
-    <p>
-        <strong>Emitido em:</strong>
-        {{ certificado.data_emissao|date:"d/m/Y H:i" }}
-    </p>
+        <div class="validation-status-card">
 
-    <p>
-        <strong>Código de validação:</strong>
-        {{ certificado.codigo_validacao }}
-    </p>
+            <div class="validation-icon">
+                ✓
+            </div>
+
+            <div>
+
+                <small>
+                    STATUS DO CERTIFICADO
+                </small>
+
+                <h2>
+                    Certificado válido
+                </h2>
+
+                <p>
+                    Este certificado foi emitido pelo AcadEvents
+                    e encontra-se ativo.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- DADOS DO CERTIFICADO -->
+
+        <div class="validation-details-card">
+
+            <div class="validation-card-header">
+
+                <span class="section-tag">
+                    INFORMAÇÕES
+                </span>
+
+                <h2>
+                    Dados do certificado
+                </h2>
+
+            </div>
+
+
+            <div class="validation-data-grid">
+
+                <div class="validation-data-item">
+
+                    <small>
+                        PARTICIPANTE
+                    </small>
+
+                    <strong>
+                        {% if certificado.presenca.inscricao.estudante.get_full_name %}
+                            {{ certificado.presenca.inscricao.estudante.get_full_name }}
+                        {% else %}
+                            {{ certificado.presenca.inscricao.estudante.username }}
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+
+                <div class="validation-data-item">
+
+                    <small>
+                        EVENTO
+                    </small>
+
+                    <strong>
+                        {{ certificado.presenca.inscricao.evento.titulo }}
+                    </strong>
+
+                </div>
+
+
+                <div class="validation-data-item">
+
+                    <small>
+                        CARGA HORÁRIA
+                    </small>
+
+                    <strong>
+                        {{ certificado.presenca.inscricao.evento.carga_horaria }}h
+                    </strong>
+
+                </div>
+
+
+                <div class="validation-data-item">
+
+                    <small>
+                        DATA DO EVENTO
+                    </small>
+
+                    <strong>
+                        {{ certificado.presenca.inscricao.evento.data_inicio|date:"d/m/Y" }}
+                    </strong>
+
+                </div>
+
+
+                <div class="validation-data-item">
+
+                    <small>
+                        DATA DE EMISSÃO
+                    </small>
+
+                    <strong>
+                        {{ certificado.data_emissao|date:"d/m/Y H:i" }}
+                    </strong>
+
+                </div>
+
+
+                <div class="validation-data-item">
+
+                    <small>
+                        CÓDIGO DE VALIDAÇÃO
+                    </small>
+
+                    <code>
+                        {{ certificado.codigo_validacao }}
+                    </code>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BLOCKCHAIN -->
+
+        <div class="public-blockchain-card">
+
+            <div class="public-blockchain-header">
+
+                <span>
+                    ⛓
+                </span>
+
+                <div>
+
+                    <small>
+                        VERIFICAÇÃO BLOCKCHAIN
+                    </small>
+
+                    <strong>
+                        Solana Devnet
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="public-blockchain-info">
+
+                <div>
+
+                    <small>
+                        HASH SHA-256
+                    </small>
+
+                    {% if certificado.hash_certificado %}
+
+                        <code>
+                            {{ certificado.hash_certificado }}
+                        </code>
+
+                    {% else %}
+
+                        <span class="blockchain-pending">
+                            Hash ainda não gerado
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        STATUS
+                    </small>
+
+                    {% if certificado.registrado_solana %}
+
+                        <span class="blockchain-registered">
+                            ✓ Registrado na Solana
+                        </span>
+
+                    {% else %}
+
+                        <span class="blockchain-pending">
+                            ● Aguardando registro
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        REDE
+                    </small>
+
+                    <strong>
+                        Solana {{ certificado.rede_solana|title }}
+                    </strong>
+
+                </div>
+
+
+                {% if certificado.data_registro_solana %}
+
+                    <div>
+
+                        <small>
+                            REGISTRADO EM
+                        </small>
+
+                        <strong>
+                            {{ certificado.data_registro_solana|date:"d/m/Y H:i" }}
+                        </strong>
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if certificado.assinatura_solana %}
+
+                    <div>
+
+                        <small>
+                            ASSINATURA DA TRANSAÇÃO
+                        </small>
+
+                        <code title="{{ certificado.assinatura_solana }}">
+                            {{ certificado.assinatura_solana|slice:":15" }}...{{ certificado.assinatura_solana|slice:"-15:" }}
+                        </code>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if certificado.registrado_solana and certificado.solana_explorer_url %}
+
+                <a
+                    href="{{ certificado.solana_explorer_url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="solana-explorer-button"
+                >
+                    Ver transação no Solana Explorer ↗
+                </a>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- CONFIRMAÇÕES -->
+
+        <div class="validation-security">
+
+            <div class="validation-security-item">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+
+                    <strong>
+                        Presença confirmada
+                    </strong>
+
+                    <small>
+                        Participação registrada pelo organizador.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="validation-security-item">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+
+                    <strong>
+                        Certificado AcadEvents
+                    </strong>
+
+                    <small>
+                        Documento válido e ativo na plataforma.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            {% if certificado.registrado_solana %}
+
+                <div class="validation-security-item">
+
+                    <span>
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Prova blockchain
+                        </strong>
+
+                        <small>
+                            Hash registrado na rede Solana.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="validation-footer">
+
+            <p>
+                Este documento pode ser validado publicamente
+                através do código exclusivo gerado pelo AcadEvents.
+            </p>
+
+            <a
+                href="{% url 'home' %}"
+                class="secondary-button"
+            >
+                Voltar para o AcadEvents
+            </a>
+
+        </div>
+
+    </div>
 
 </section>
 

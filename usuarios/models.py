@@ -31,5 +31,18 @@ class Usuario(AbstractUser):
         blank=True
     )
 
+    carteira_solana = models.CharField(
+        max_length=44,
+        blank=True,
+        null=True,
+        unique=True,
+        verbose_name='Carteira Solana'
+    )
+
+    carteira_solana_verificada = models.BooleanField(
+        default=False,
+        verbose_name='Carteira Solana verificada'
+    )
+
     def __str__(self):
         return self.get_full_name() or self.username

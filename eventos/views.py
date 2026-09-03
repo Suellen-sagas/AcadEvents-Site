@@ -86,7 +86,6 @@ def painel_organizador(request):
             'administrador'
         )
     ):
-
         messages.error(
             request,
             'Você não possui acesso à área do organizador.'
@@ -94,24 +93,43 @@ def painel_organizador(request):
 
         return redirect('home')
 
+    agora = timezone.now()
+
     if (
         request.user.is_superuser
         or request.user.tipo_usuario == 'administrador'
     ):
 
-        eventos = Evento.objects.all().order_by(
-            '-criado_em'
-        )
+        eventos = Evento.objects.all()
 
     else:
 
         eventos = Evento.objects.filter(
             organizador=request.user
-        ).order_by(
-            '-criado_em'
         )
 
+    eventos = eventos.order_by('-criado_em')
+
     total_eventos = eventos.count()
+
+    eventos_ativos = eventos.filter(
+        ativo=True
+    ).count()
+
+    proximos_eventos = eventos.filter(
+        ativo=True,
+        data_inicio__gt=agora
+    ).order_by('data_inicio')
+
+    eventos_em_andamento = eventos.filter(
+        ativo=True,
+        data_inicio__lte=agora,
+        data_fim__gte=agora
+    ).order_by('data_fim')
+
+    eventos_encerrados = eventos.filter(
+        data_fim__lt=agora
+    ).order_by('-data_fim')
 
     total_inscricoes = sum(
         evento.inscricoes.filter(
@@ -120,13 +138,35 @@ def painel_organizador(request):
         for evento in eventos
     )
 
+    total_presentes = sum(
+        evento.inscricoes.filter(
+            status='confirmada',
+            presenca__confirmada=True
+        ).count()
+        for evento in eventos
+    )
+
+    if total_inscricoes > 0:
+        taxa_presenca = round(
+            (total_presentes / total_inscricoes) * 100,
+            1
+        )
+    else:
+        taxa_presenca = 0
+
     return render(
         request,
         'eventos/painel_organizador.html',
         {
             'eventos': eventos,
             'total_eventos': total_eventos,
+            'eventos_ativos': eventos_ativos,
             'total_inscricoes': total_inscricoes,
+            'total_presentes': total_presentes,
+            'taxa_presenca': taxa_presenca,
+            'proximos_eventos': proximos_eventos,
+            'eventos_em_andamento': eventos_em_andamento,
+            'eventos_encerrados': eventos_encerrados,
         }
     )
 

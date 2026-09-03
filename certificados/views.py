@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET
 
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
@@ -307,5 +308,70 @@ def validar_certificado(request, codigo_validacao):
         'certificados/validar.html',
         {
             'certificado': certificado
+        }
+    )
+
+@login_required
+@somente_estudante
+@require_GET
+def dados_registro_solana(request, certificado_id):
+
+    certificado = get_object_or_404(
+        Certificado.objects.select_related(
+            'presenca__inscricao__estudante'
+        ),
+        id=certificado_id,
+        ativo=True,
+        presenca__confirmada=True,
+        presenca__inscricao__status='confirmada',
+        presenca__inscricao__estudante=request.user
+    )
+
+    if certificado.registrado_solana:
+
+        return JsonResponse(
+            {
+                'ok': False,
+                'erro': 'Este certificado já foi registrado na Solana.'
+            },
+            status=400
+        )
+
+    if not request.user.carteira_solana:
+
+        return JsonResponse(
+            {
+                'ok': False,
+                'erro': 'Conecte uma carteira Solana primeiro.'
+            },
+            status=400
+        )
+
+    if not request.user.carteira_solana_verificada:
+
+        return JsonResponse(
+            {
+                'ok': False,
+                'erro': 'Verifique sua carteira Solana primeiro.'
+            },
+            status=400
+        )
+
+    if not certificado.hash_certificado:
+        certificado.save()
+
+    memo = (
+        f'ACADEVENTS:CERT:'
+        f'{certificado.hash_certificado}'
+    )
+
+    return JsonResponse(
+        {
+            'ok': True,
+            'certificado_id': certificado.id,
+            'hash': certificado.hash_certificado,
+            'memo': memo,
+            'rede': certificado.rede_solana,
+            'carteira': request.user.carteira_solana,
         }
     )

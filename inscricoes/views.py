@@ -165,22 +165,45 @@ def realizar_inscricao(request, evento_id):
 @somente_estudante
 def meus_eventos(request):
 
+    agora = timezone.now()
+
     inscricoes = (
         Inscricao.objects
         .filter(
             estudante=request.user,
             status='confirmada'
         )
-        .select_related('evento')
-        .order_by('evento__data_inicio')
+        .select_related(
+            'evento',
+            'presenca'
+        )
+        .order_by(
+            'evento__data_inicio'
+        )
     )
+
+    proximos_eventos = inscricoes.filter(
+        evento__data_fim__gte=agora
+    )
+
+    eventos_concluidos = inscricoes.filter(
+        evento__data_fim__lt=agora
+    ).order_by(
+        '-evento__data_fim'
+    )
+
+    contexto = {
+        'proximos_eventos': proximos_eventos,
+        'eventos_concluidos': eventos_concluidos,
+        'total_inscricoes': inscricoes.count(),
+        'total_proximos': proximos_eventos.count(),
+        'total_concluidos': eventos_concluidos.count(),
+    }
 
     return render(
         request,
         'inscricoes/meus_eventos.html',
-        {
-            'inscricoes': inscricoes
-        }
+        contexto
     )
 
 

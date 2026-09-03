@@ -168,6 +168,21 @@ class Evento(models.Model):
         return self.titulo
 
 
+    @property
+    def total_inscritos(self):
+
+        return self.inscricoes.filter(
+            status='confirmada'
+        ).count()
+
+
+    @property
+    def total_lista_espera(self):
+
+        return self.inscricoes.filter(
+            status='espera'
+        ).count()
+
 
 class Favorito(models.Model):
 
