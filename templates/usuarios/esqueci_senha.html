@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Recuperar Senha | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="password-page">
+
+    <div class="password-card">
+
+        <a href="{% url 'login' %}" class="back-link">
+            ← Voltar ao login
+        </a>
+
+        <div class="password-header">
+
+            <span class="section-tag">
+                RECUPERAÇÃO
+            </span>
+
+            <div class="password-icon">
+                AE
+            </div>
+
+            <h1>
+                Esqueceu sua senha?
+            </h1>
+
+            <p>
+                Digite o e-mail cadastrado na sua conta.
+            </p>
+
+        </div>
+
+
+        <form method="POST" class="password-form">
+
+            {% csrf_token %}
+
+            <div class="password-field">
+
+                <label>
+                    E-mail
+                </label>
+
+                {{ form.email }}
+
+                {% if form.email.errors %}
+
+                    <div class="field-errors">
+                        {{ form.email.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+            <button type="submit" class="password-submit">
+                Enviar link de recuperação
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Notificações | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="notifications-page">
+
+    <div class="notifications-header">
+
+        <div>
+            <span class="section-tag">
+                CENTRAL
+            </span>
+
+            <h1>
+                Notificações
+            </h1>
+
+            <p>
+                Acompanhe suas inscrições, certificados
+                e atualizações do AcadEvents.
+            </p>
+        </div>
+
+
+        {% if notificacoes %}
+
+            <form
+                method="POST"
+                action="{% url 'notificacoes:marcar_todas' %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="mark-all-button"
+                >
+                    Marcar todas como lidas
+                </button>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="notifications-list">
+
+        {% for notificacao in notificacoes %}
+
+            <article
+                class="notification-card {% if not notificacao.lida %}notification-unread{% endif %}"
+            >
+
+                <div class="notification-icon">
+
+                    {% if notificacao.tipo == 'certificado' %}
+                        ✓
+                    {% elif notificacao.tipo == 'inscricao' %}
+                        AE
+                    {% elif notificacao.tipo == 'evento' %}
+                        !
+                    {% else %}
+                        AE
+                    {% endif %}
+
+                </div>
+
+
+                <div class="notification-content">
+
+                    <div class="notification-top">
+
+                        <h2>
+                            {{ notificacao.titulo }}
+                        </h2>
+
+                        {% if not notificacao.lida %}
+
+                            <span class="notification-new">
+                                NOVA
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <p>
+                        {{ notificacao.mensagem }}
+                    </p>
+
+
+                    <div class="notification-footer">
+
+                        <span>
+                            {{ notificacao.criada_em|date:"d/m/Y H:i" }}
+                        </span>
+
+
+                        <div class="notification-actions">
+
+                            {% if notificacao.evento %}
+
+                                <a
+                                    href="{% url 'eventos:detalhe' notificacao.evento.id %}"
+                                >
+                                    Ver evento
+                                </a>
+
+                            {% endif %}
+
+
+                            {% if not notificacao.lida %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'notificacoes:marcar_lida' notificacao.id %}"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button type="submit">
+                                        Marcar como lida
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+        {% empty %}
+
+            <div class="empty-student">
+
+                <div class="empty-icon">
+                    AE
+                </div>
+
+                <h2>
+                    Nenhuma notificação
+                </h2>
+
+                <p>
+                    Suas novidades aparecerão aqui.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

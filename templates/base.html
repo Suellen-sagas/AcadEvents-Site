@@ -1,0 +1,187 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+        AcadEvents
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}"
+    >
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="container navbar">
+
+            <a
+                href="{% url 'home' %}"
+                class="logo"
+            >
+                AcadEvents
+            </a>
+
+
+            <nav class="nav-links">
+
+                <a href="{% url 'home' %}">
+                    Eventos
+                </a>
+
+
+                {% if user.is_authenticated %}
+
+
+                    {% if user.tipo_usuario == 'estudante' %}
+
+                        <a href="{% url 'inscricoes:meus_eventos' %}">
+                            Meus Eventos
+                        </a>
+
+                        <a href="{% url 'eventos:favoritos' %}">
+                            Favoritos
+                        </a>
+
+                        <a href="{% url 'certificados:meus_certificados' %}">
+                            Certificados
+                        </a>
+
+                    {% endif %}
+
+
+                    {% if user.tipo_usuario == 'organizador' or user.tipo_usuario == 'administrador' %}
+
+                        <a href="{% url 'eventos:painel_organizador' %}">
+                            Painel
+                        </a>
+
+                    {% endif %}
+
+
+                    <a href="{% url 'perfil' %}">
+                        Meu Perfil
+                    </a>
+
+    <a
+        href="{% url 'notificacoes:lista' %}"
+        class="notification-nav-link"
+>
+            <span>🔔</span>
+
+        <span>
+            Notificações
+        </span>
+
+    {% if notificacoes_nao_lidas > 0 %}
+
+        <span class="notification-nav-count">
+            {{ notificacoes_nao_lidas }}
+        </span>
+
+    {% endif %}
+</a>
+
+
+                    <form
+                        action="{% url 'logout' %}"
+                        method="POST"
+                        class="form-logout"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn-logout"
+                        >
+                            Sair
+                        </button>
+
+                    </form>
+
+
+                {% else %}
+
+                    <a href="{% url 'login' %}">
+                        Entrar
+                    </a>
+
+                    <a
+                        href="{% url 'cadastro' %}"
+                        class="btn-nav"
+                    >
+                        Criar conta
+                    </a>
+
+                {% endif %}
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    {% if messages %}
+
+        <div class="container messages">
+
+            {% for message in messages %}
+
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <main class="main">
+
+        <div class="container">
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <div class="container">
+
+            <p>
+                AcadEvents © 2026
+            </p>
+
+            <p>
+                Eventos acadêmicos em um só lugar.
+            </p>
+
+        </div>
+
+    </footer>
+
+</body>
+
+</html>

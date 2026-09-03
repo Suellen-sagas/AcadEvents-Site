@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Meus Certificados | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="student-page">
+
+    <div class="page-heading">
+
+        <div>
+            <span class="section-tag">
+                CONQUISTAS
+            </span>
+
+            <h1>Meus Certificados</h1>
+
+            <p>
+                Seus certificados acadêmicos em um só lugar.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="certificate-grid">
+
+        {% for certificado in certificados %}
+
+            <article class="certificate-card">
+
+                <div class="certificate-top">
+
+                    <div class="certificate-icon">
+                        AE
+                    </div>
+
+                    <span class="certificate-status">
+                        CERTIFICADO
+                    </span>
+
+                </div>
+
+
+                <div class="certificate-content">
+
+                    <span class="student-badge">
+                        {{ certificado.presenca.inscricao.evento.get_categoria_display }}
+                    </span>
+
+                    <h2>
+                        {{ certificado.presenca.inscricao.evento.titulo }}
+                    </h2>
+
+
+                    <div class="certificate-data">
+
+                        <p>
+                            <small>CARGA HORÁRIA</small>
+
+                            <strong>
+                                {{ certificado.presenca.inscricao.evento.carga_horaria }} horas
+                            </strong>
+                        </p>
+
+                        <p>
+                            <small>EMITIDO EM</small>
+
+                            <strong>
+                                {{ certificado.data_emissao|date:"d/m/Y" }}
+                            </strong>
+                        </p>
+
+                    </div>
+
+
+                    <div class="certificate-code">
+
+                        <small>
+                            CÓDIGO DE VALIDAÇÃO
+                        </small>
+
+                        <span>
+                            {{ certificado.codigo_validacao }}
+                        </span>
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'certificados:baixar' certificado.id %}"
+                        class="certificate-button"
+                    >
+                        Baixar certificado
+                    </a>
+
+                </div>
+
+            </article>
+
+        {% empty %}
+
+            <div class="empty-student">
+
+                <div class="empty-icon">
+                    AE
+                </div>
+
+                <h2>
+                    Nenhum certificado disponível
+                </h2>
+
+                <p>
+                    Após participar de um evento e ter sua
+                    presença confirmada, o certificado aparecerá aqui.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

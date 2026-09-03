@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Relatório do Evento | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="report-page">
+
+    <div class="report-header">
+
+        <div>
+            <span class="section-tag">
+                RELATÓRIO
+            </span>
+
+            <h1>
+                {{ evento.titulo }}
+            </h1>
+
+            <p>
+                Acompanhe os principais dados do evento e o desempenho das inscrições.
+            </p>
+        </div>
+
+
+        <div class="report-header-actions">
+
+            <a
+                href="{% url 'eventos:gerenciar' evento.id %}"
+                class="back-link"
+            >
+                ← Voltar
+            </a>
+
+            <a
+                href="{% url 'eventos:exportar_relatorio' evento.id %}"
+                class="report-download"
+            >
+                Baixar relatório
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="report-stats">
+
+        <div class="report-stat">
+
+            <span>
+                INSCRITOS
+            </span>
+
+            <strong>
+                {{ total_inscritos }}
+            </strong>
+
+            <small>
+                participantes confirmados
+            </small>
+
+        </div>
+
+
+        <div class="report-stat">
+
+            <span>
+                PRESENTES
+            </span>
+
+            <strong class="report-green">
+                {{ total_presentes }}
+            </strong>
+
+            <small>
+                presenças registradas
+            </small>
+
+        </div>
+
+
+        <div class="report-stat">
+
+            <span>
+                AUSENTES
+            </span>
+
+            <strong class="report-red">
+                {{ total_ausentes }}
+            </strong>
+
+            <small>
+                sem presença registrada
+            </small>
+
+        </div>
+
+
+        <div class="report-stat report-highlight">
+
+            <span>
+                TAXA DE PRESENÇA
+            </span>
+
+            <strong>
+                {{ taxa_presenca }}%
+            </strong>
+
+            <small>
+                participação no evento
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <div class="report-summary">
+
+        <div class="report-summary-main">
+
+            <span class="section-tag">
+                RESUMO
+            </span>
+
+            <h2>
+                Visão geral
+            </h2>
+
+
+            <div class="report-progress">
+
+                <div class="report-progress-header">
+
+                    <span>
+                        Presença dos inscritos
+                    </span>
+
+                    <strong>
+                        {{ taxa_presenca }}%
+                    </strong>
+
+                </div>
+
+
+                <progress
+                    class="report-progress-bar"
+                    value="{{ taxa_presenca }}"
+                    max="100"
+>
+                    {{ taxa_presenca }}%
+                </progress>
+
+            </div>
+
+
+            <div class="report-summary-grid">
+
+                <div>
+                    <small>
+                        CAPACIDADE
+                    </small>
+
+                    <strong>
+                        {{ evento.limite_vagas }}
+                    </strong>
+
+                    <span>
+                        vagas
+                    </span>
+                </div>
+
+
+                <div>
+                    <small>
+                        CARGA HORÁRIA
+                    </small>
+
+                    <strong>
+                        {{ evento.carga_horaria }}
+                    </strong>
+
+                    <span>
+                        horas
+                    </span>
+                </div>
+
+
+                <div>
+                    <small>
+                        CERTIFICADOS
+                    </small>
+
+                    <strong>
+                        {{ certificados_emitidos }}
+                    </strong>
+
+                    <span>
+                        emitidos
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <aside class="report-event-data">
+
+            <span class="section-tag">
+                EVENTO
+            </span>
+
+            <h2>
+                Informações
+            </h2>
+
+
+            <div class="report-info-item">
+
+                <small>
+                    CATEGORIA
+                </small>
+
+                <strong>
+                    {{ evento.get_categoria_display }}
+                </strong>
+
+            </div>
+
+
+            <div class="report-info-item">
+
+                <small>
+                    MODALIDADE
+                </small>
+
+                <strong>
+                    {{ evento.get_modalidade_display }}
+                </strong>
+
+            </div>
+
+
+            <div class="report-info-item">
+
+                <small>
+                    INÍCIO
+                </small>
+
+                <strong>
+                    {{ evento.data_inicio|date:"d/m/Y H:i" }}
+                </strong>
+
+            </div>
+
+
+            <div class="report-info-item">
+
+                <small>
+                    TÉRMINO
+                </small>
+
+                <strong>
+                    {{ evento.data_fim|date:"d/m/Y H:i" }}
+                </strong>
+
+            </div>
+
+
+            {% if evento.local %}
+
+                <div class="report-info-item">
+
+                    <small>
+                        LOCAL
+                    </small>
+
+                    <strong>
+                        {{ evento.local }}
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+        </aside>
+
+    </div>
+
+
+    <div class="report-participants">
+
+        <div class="participants-header">
+
+            <div>
+
+                <span class="section-tag">
+                    PARTICIPANTES
+                </span>
+
+                <h2>
+                    Lista completa
+                </h2>
+
+            </div>
+
+
+            <span class="participants-count">
+                {{ total_inscritos }} participantes
+            </span>
+
+        </div>
+
+
+        <div class="report-table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Participante</th>
+                        <th>Instituição</th>
+                        <th>Curso</th>
+                        <th>Presença</th>
+                        <th>Certificado</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for inscricao in inscricoes %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="report-user">
+
+                                    <div class="participant-avatar">
+
+                                        {% if inscricao.estudante.first_name %}
+
+                                            {{ inscricao.estudante.first_name|first|upper }}
+
+                                        {% else %}
+
+                                            {{ inscricao.estudante.username|first|upper }}
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <strong>
+                                            {{ inscricao.estudante.get_full_name|default:inscricao.estudante.username }}
+                                        </strong>
+
+                                        <span>
+                                            {{ inscricao.estudante.email }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+                                {{ inscricao.estudante.instituicao|default:"Não informado" }}
+                            </td>
+
+
+                            <td>
+                                {{ inscricao.estudante.curso|default:"Não informado" }}
+                            </td>
+
+
+                            <td>
+
+                                {% if inscricao.presenca.confirmada %}
+
+                                    <span class="presence-confirmed">
+                                        ✓ Presente
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="presence-pending">
+                                        Ausente
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                {% if inscricao.presenca.confirmada %}
+
+                                    <span class="certificate-issued">
+                                        Emitido
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="certificate-pending">
+                                        Pendente
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="report-empty"
+                            >
+                                Nenhum participante inscrito neste evento.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

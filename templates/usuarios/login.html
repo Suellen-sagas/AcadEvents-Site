@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Entrar | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+
+    <div class="auth-box">
+
+        <div class="auth-header">
+
+            <span class="auth-tag">
+                ACADEVENTS
+            </span>
+
+            <h1>
+                Bem-vindo de volta
+            </h1>
+
+            <p>
+                Entre na sua conta para continuar
+                explorando eventos acadêmicos.
+            </p>
+
+        </div>
+
+
+        {% if form.errors %}
+
+            <div class="auth-error">
+                Usuário ou senha incorretos.
+            </div>
+
+        {% endif %}
+
+
+        <form method="POST" class="auth-form">
+
+            {% csrf_token %}
+
+            <div class="auth-field">
+
+                <label>
+                    Usuário
+                </label>
+
+                {{ form.username }}
+
+            </div>
+
+
+            <div class="auth-field">
+
+                <label>
+                    Senha
+                </label>
+
+                {{ form.password }}
+
+            </div>
+
+            <div class="forgot-password">
+
+                 <a href="{% url 'password_reset' %}">
+                    Esqueci minha senha
+                </a>
+                
+            </div>
+
+
+            <button
+                type="submit"
+                class="auth-submit"
+            >
+                Entrar
+            </button>
+
+        </form>
+
+
+        <div class="auth-bottom">
+
+            <p>
+                Ainda não possui uma conta?
+            </p>
+
+            <a href="{% url 'cadastro' %}">
+                Criar conta
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="auth-side">
+
+        <span class="auth-side-logo">
+            AE
+        </span>
+
+        <h2>
+            Seu próximo evento começa aqui.
+        </h2>
+
+        <p>
+            Descubra oportunidades,
+            participe de experiências e
+            fortaleça sua trajetória acadêmica.
+        </p>
+
+    </div>
+
+</section>
+
+{% endblock %}

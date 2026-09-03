@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Editar Evento | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="event-form-page">
+
+    <div class="event-form-header">
+
+        <div>
+            <span class="section-tag">
+                EDIÇÃO
+            </span>
+
+            <h1>Editar Evento</h1>
+
+            <p>
+                Atualize as informações de
+                <strong>{{ evento.titulo }}</strong>.
+            </p>
+        </div>
+
+
+        <a
+            href="{% url 'eventos:gerenciar' evento.id %}"
+            class="back-link"
+        >
+            ← Voltar ao gerenciamento
+        </a>
+
+    </div>
+
+
+    <div class="event-form-layout">
+
+        <div class="event-form-card">
+
+            <div class="form-card-header">
+
+                <span>AE</span>
+
+                <div>
+                    <h2>Dados do evento</h2>
+
+                    <p>
+                        Faça as alterações necessárias e salve ao finalizar.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+                class="event-form"
+            >
+
+                {% csrf_token %}
+
+
+                {% if form.non_field_errors %}
+
+                    <div class="auth-error">
+                        {{ form.non_field_errors }}
+                    </div>
+
+                {% endif %}
+
+
+                {% for field in form %}
+
+                    <div class="event-form-field">
+
+                        <label for="{{ field.id_for_label }}">
+
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+
+                        </label>
+
+
+                        {{ field }}
+
+
+                        {% if field.help_text %}
+
+                            <small class="field-help">
+                                {{ field.help_text }}
+                            </small>
+
+                        {% endif %}
+
+
+                        {% if field.errors %}
+
+                            <div class="field-errors">
+                                {{ field.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+
+                <div class="event-form-actions">
+
+                    <a
+                        href="{% url 'eventos:gerenciar' evento.id %}"
+                        class="cancel-button"
+                    >
+                        Cancelar
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="save-event-button"
+                    >
+                        Salvar alterações
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <aside class="event-form-side edit-side">
+
+            <div class="form-side-icon">
+                AE
+            </div>
+
+            <span class="section-tag">
+                EVENTO
+            </span>
+
+            <h2>
+                {{ evento.titulo }}
+            </h2>
+
+
+            <div class="edit-event-data">
+
+                <div>
+                    <small>STATUS</small>
+
+                    {% if evento.ativo %}
+                        <strong class="status-green">
+                            Ativo
+                        </strong>
+                    {% else %}
+                        <strong class="status-red">
+                            Inativo
+                        </strong>
+                    {% endif %}
+                </div>
+
+
+                <div>
+                    <small>DATA</small>
+
+                    <strong>
+                        {{ evento.data_inicio|date:"d/m/Y" }}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <small>MODALIDADE</small>
+
+                    <strong>
+                        {{ evento.get_modalidade_display }}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <small>INSCRITOS</small>
+
+                    <strong>
+                        {{ evento.inscricoes.count }}
+                        /
+                        {{ evento.limite_vagas }}
+                    </strong>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}

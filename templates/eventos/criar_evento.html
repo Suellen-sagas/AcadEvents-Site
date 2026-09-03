@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Criar Evento | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="event-form-page">
+
+    <div class="event-form-header">
+
+        <div>
+            <span class="section-tag">
+                ORGANIZADOR
+            </span>
+
+            <h1>Criar Evento</h1>
+
+            <p>
+                Cadastre todas as informações do seu novo evento acadêmico.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'eventos:painel_organizador' %}"
+            class="back-link"
+        >
+            ← Voltar ao painel
+        </a>
+
+    </div>
+
+
+    <div class="event-form-layout">
+
+        <div class="event-form-card">
+
+            <div class="form-card-header">
+                <span>01</span>
+
+                <div>
+                    <h2>Informações do evento</h2>
+
+                    <p>
+                        Preencha os dados que serão exibidos aos participantes.
+                    </p>
+                </div>
+            </div>
+
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+                class="event-form"
+            >
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+
+                    <div class="auth-error">
+                        {{ form.non_field_errors }}
+                    </div>
+
+                {% endif %}
+
+
+                {% for field in form %}
+
+                    <div class="event-form-field">
+
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+
+                            <small class="field-help">
+                                {{ field.help_text }}
+                            </small>
+
+                        {% endif %}
+
+                        {% if field.errors %}
+
+                            <div class="field-errors">
+                                {{ field.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+
+                <div class="event-form-actions">
+
+                    <a
+                        href="{% url 'eventos:painel_organizador' %}"
+                        class="cancel-button"
+                    >
+                        Cancelar
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="save-event-button"
+                    >
+                        Criar evento
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <aside class="event-form-side">
+
+            <div class="form-side-icon">
+                AE
+            </div>
+
+            <span class="section-tag">
+                DICA
+            </span>
+
+            <h2>
+                Um bom evento começa com uma boa apresentação.
+            </h2>
+
+            <p>
+                Use um título claro, uma descrição objetiva e uma imagem que
+                represente bem o conteúdo.
+            </p>
+
+
+            <div class="form-side-list">
+
+                <div>
+                    <span>01</span>
+                    <p>Escolha a categoria correta.</p>
+                </div>
+
+                <div>
+                    <span>02</span>
+                    <p>Confira data e horário.</p>
+                </div>
+
+                <div>
+                    <span>03</span>
+                    <p>Defina o limite de participantes.</p>
+                </div>
+
+                <div>
+                    <span>04</span>
+                    <p>Informe a carga horária do certificado.</p>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}

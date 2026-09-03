@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Gerenciar Evento | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="manage-page">
+
+    <div class="manage-header">
+
+        <div>
+            <span class="section-tag">
+                GERENCIAMENTO
+            </span>
+
+            <h1>
+                {{ evento.titulo }}
+            </h1>
+
+            <p>
+                Acompanhe inscrições, presença e informações do evento.
+            </p>
+        </div>
+
+
+        <a
+            href="{% url 'eventos:painel_organizador' %}"
+            class="back-link"
+        >
+            ← Voltar ao painel
+        </a>
+
+    </div>
+
+
+    <div class="manage-stats">
+
+        <div class="manage-stat">
+            <span>INSCRITOS</span>
+
+            <strong>
+                {{ total_inscritos }}
+            </strong>
+
+            <small>
+                de {{ evento.limite_vagas }} vagas
+            </small>
+        </div>
+
+
+        <div class="manage-stat">
+            <span>PRESENTES</span>
+
+            <strong>
+                {{ total_presentes }}
+            </strong>
+
+            <small>
+                presenças confirmadas
+            </small>
+        </div>
+
+
+        <div class="manage-stat">
+
+            <span>STATUS</span>
+
+            {% if evento.ativo %}
+
+                <strong class="manage-active">
+                    Ativo
+                </strong>
+
+                <small>
+                    Evento disponível
+                </small>
+
+            {% else %}
+
+                <strong class="manage-inactive">
+                    Inativo
+                </strong>
+
+                <small>
+                    Evento indisponível
+                </small>
+
+            {% endif %}
+
+        </div>
+
+
+    <div class="manage-stat">
+
+        <span>CAPACIDADE</span>
+
+            <strong>
+            {{ evento.limite_vagas }}
+         </strong>
+
+         <small>
+            vagas totais
+         </small>
+
+    </div>
+
+    </div>
+
+
+    <div class="manage-actions">
+
+        <a
+            href="{% url 'eventos:editar' evento.id %}"
+            class="manage-action-primary"
+        >
+            Editar evento
+        </a>
+
+
+        <a
+            href="{% url 'eventos:relatorio' evento.id %}"
+            class="manage-action-secondary"
+        >
+            Ver relatório
+        </a>
+
+
+        {% if evento.ativo %}
+
+            <a
+                href="{% url 'eventos:detalhe' evento.id %}"
+                class="manage-action-secondary"
+            >
+                Página pública
+            </a>
+
+        {% endif %}
+
+
+        <form
+            method="POST"
+            action="{% url 'eventos:alterar_status' evento.id %}"
+            class="manage-status-form"
+        >
+
+            {% csrf_token %}
+
+            {% if evento.ativo %}
+
+                <button
+                    type="submit"
+                    class="manage-action-danger"
+                >
+                    Desativar evento
+                </button>
+
+            {% else %}
+
+                <button
+                    type="submit"
+                    class="manage-action-success"
+                >
+                    Reativar evento
+                </button>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <div class="manage-content">
+
+        <div class="participants-card">
+
+            <div class="participants-header">
+
+                <div>
+                    <span class="section-tag">
+                        PARTICIPANTES
+                    </span>
+
+                    <h2>
+                        Lista de inscritos
+                    </h2>
+                </div>
+
+                <span class="participants-count">
+                    {{ total_inscritos }} inscritos
+                </span>
+
+            </div>
+
+
+            <div class="participants-list">
+
+                {% for inscricao in inscricoes %}
+
+                    <div class="participant-row">
+
+                        <div class="participant-user">
+
+                            <div class="participant-avatar">
+
+                                {% if inscricao.estudante.first_name %}
+
+                                    {{ inscricao.estudante.first_name|first|upper }}
+
+                                {% else %}
+
+                                    {{ inscricao.estudante.username|first|upper }}
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    {{ inscricao.estudante.get_full_name|default:inscricao.estudante.username }}
+                                </strong>
+
+                                <span>
+                                    {{ inscricao.estudante.email }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="participant-course">
+
+                            <small>CURSO</small>
+
+                            <span>
+                                {{ inscricao.estudante.curso|default:"Não informado" }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="participant-presence">
+
+                            {% if inscricao.presenca.confirmada %}
+
+                                <span class="presence-confirmed">
+                                    ✓ Presente
+                                </span>
+
+                            {% else %}
+
+                                <span class="presence-pending">
+                                    Aguardando
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="participant-action">
+
+                            {% if not inscricao.presenca.confirmada %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'presencas:confirmar_manual' inscricao.id %}"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="confirm-presence-button"
+                                    >
+                                        Confirmar presença
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                {% if inscricao.presenca.data_confirmacao %}
+
+                                    <small>
+                                        {{ inscricao.presenca.data_confirmacao|date:"d/m/Y H:i" }}
+                                    </small>
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                {% empty %}
+
+                    <div class="participants-empty">
+
+                        <div class="empty-icon">
+                            AE
+                        </div>
+
+                        <h3>
+                            Nenhum participante inscrito
+                        </h3>
+
+                        <p>
+                            Quando estudantes se inscreverem,
+                            eles aparecerão aqui.
+                        </p>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <aside class="manage-event-info">
+
+            <span class="section-tag">
+                EVENTO
+            </span>
+
+            <h2>
+                Informações
+            </h2>
+
+
+            <div class="manage-info-item">
+                <small>CATEGORIA</small>
+
+                <strong>
+                    {{ evento.get_categoria_display }}
+                </strong>
+            </div>
+
+
+            <div class="manage-info-item">
+                <small>MODALIDADE</small>
+
+                <strong>
+                    {{ evento.get_modalidade_display }}
+                </strong>
+            </div>
+
+
+            <div class="manage-info-item">
+                <small>DATA DE INÍCIO</small>
+
+                <strong>
+                    {{ evento.data_inicio|date:"d/m/Y H:i" }}
+                </strong>
+            </div>
+
+
+            <div class="manage-info-item">
+                <small>DATA DE TÉRMINO</small>
+
+                <strong>
+                    {{ evento.data_fim|date:"d/m/Y H:i" }}
+                </strong>
+            </div>
+
+
+            <div class="manage-info-item">
+                <small>INSCRIÇÕES ATÉ</small>
+
+                <strong>
+                    {{ evento.data_limite_inscricao|date:"d/m/Y H:i" }}
+                </strong>
+            </div>
+
+
+            <div class="manage-info-item">
+                <small>CARGA HORÁRIA</small>
+
+                <strong>
+                    {{ evento.carga_horaria }} horas
+                </strong>
+            </div>
+
+
+            {% if evento.local %}
+
+                <div class="manage-info-item">
+                    <small>LOCAL</small>
+
+                    <strong>
+                        {{ evento.local }}
+                    </strong>
+                </div>
+
+            {% endif %}
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}

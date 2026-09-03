@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Senha Alterada | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="password-page">
+
+    <div class="password-card">
+
+        <div class="password-header">
+
+            <span class="section-tag">
+                CONCLUÍDO
+            </span>
+
+            <div class="password-icon">
+                ✓
+            </div>
+
+            <h1>
+                Senha alterada
+            </h1>
+
+            <p>
+                Sua senha foi redefinida com sucesso.
+                Agora você já pode entrar novamente.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'login' %}"
+            class="event-enroll-button"
+        >
+            Entrar na minha conta
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ evento.titulo }} | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="event-detail-page">
+
+    <a href="{% url 'home' %}" class="back-link">
+        ← Voltar aos eventos
+    </a>
+
+
+    <div class="event-detail-hero">
+
+        <div class="event-detail-image">
+
+            {% if evento.imagem %}
+
+                <img
+                    src="{{ evento.imagem.url }}"
+                    alt="{{ evento.titulo }}"
+                >
+
+            {% else %}
+
+                <div class="event-detail-placeholder">
+                    <span>AE</span>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="event-detail-main">
+
+            <div class="event-detail-tags">
+
+                <span class="event-detail-category">
+                    {{ evento.get_categoria_display }}
+                </span>
+
+                <span class="event-detail-mode">
+                    {{ evento.get_modalidade_display }}
+                </span>
+
+            </div>
+
+
+            <h1>
+                {{ evento.titulo }}
+            </h1>
+
+
+            <p class="event-detail-description">
+                {{ evento.descricao }}
+            </p>
+
+
+            <div class="event-detail-data">
+
+                <div>
+                    <small>DATA</small>
+
+                    <strong>
+                        {{ evento.data_inicio|date:"d/m/Y" }}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <small>HORÁRIO</small>
+
+                    <strong>
+                        {{ evento.data_inicio|date:"H:i" }}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <small>CARGA HORÁRIA</small>
+
+                    <strong>
+                        {{ evento.carga_horaria }}h
+                    </strong>
+                </div>
+
+
+                <div>
+                    <small>VAGAS</small>
+
+                    <strong>
+                        {{ vagas_disponiveis }}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            {% if evento.local %}
+
+                <div class="event-location">
+
+                    <small>LOCAL</small>
+
+                    <strong>
+                        {{ evento.local }}
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="event-detail-actions">
+
+                {% if user.is_authenticated %}
+
+                    {% if user.tipo_usuario == 'estudante' %}
+
+                        {% if inscrito %}
+
+                            <div class="already-enrolled">
+                                ✓ Você já está inscrito neste evento
+                            </div>
+
+                        {% else %}
+
+                            {% if inscricoes_abertas %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'inscricoes:realizar' evento.id %}"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="event-enroll-button"
+                                    >
+                                        Inscrever-se
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <div class="event-closed">
+                                    Inscrições encerradas
+                                </div>
+
+                            {% endif %}
+
+                        {% endif %}
+
+
+                        <form
+                            method="POST"
+                            action="{% url 'eventos:favoritar' evento.id %}"
+                        >
+                            {% csrf_token %}
+
+                            {% if favoritado %}
+
+                                <button
+                                    type="submit"
+                                    class="favorite-button active"
+                                >
+                                    ★ Remover dos favoritos
+                                </button>
+
+                            {% else %}
+
+                                <button
+                                    type="submit"
+                                    class="favorite-button"
+                                >
+                                    ☆ Salvar evento
+                                </button>
+
+                            {% endif %}
+
+                        </form>
+
+                    {% endif %}
+
+
+                    {% if user.tipo_usuario == 'organizador' or user.tipo_usuario == 'administrador' %}
+
+                        <a
+                            href="{% url 'eventos:painel_organizador' %}"
+                            class="favorite-button"
+                        >
+                            Ir para o painel
+                        </a>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <a
+                        href="{% url 'login' %}"
+                        class="event-enroll-button"
+                    >
+                        Entrar para participar
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="event-detail-bottom">
+
+        <div class="event-about">
+
+            <span class="section-tag">
+                SOBRE
+            </span>
+
+            <h2>
+                Sobre o evento
+            </h2>
+
+            <p>
+                {{ evento.descricao }}
+            </p>
+
+        </div>
+
+
+        <aside class="event-summary">
+
+            <span class="section-tag">
+                INFORMAÇÕES
+            </span>
+
+            <h2>
+                Resumo
+            </h2>
+
+
+            <div class="event-summary-item">
+
+                <small>MODALIDADE</small>
+
+                <strong>
+                    {{ evento.get_modalidade_display }}
+                </strong>
+
+            </div>
+
+
+            <div class="event-summary-item">
+
+                <small>INÍCIO</small>
+
+                <strong>
+                    {{ evento.data_inicio|date:"d/m/Y H:i" }}
+                </strong>
+
+            </div>
+
+
+            <div class="event-summary-item">
+
+                <small>TÉRMINO</small>
+
+                <strong>
+                    {{ evento.data_fim|date:"d/m/Y H:i" }}
+                </strong>
+
+            </div>
+
+
+            <div class="event-summary-item">
+
+                <small>INSCRIÇÕES ATÉ</small>
+
+                <strong>
+                    {{ evento.data_limite_inscricao|date:"d/m/Y H:i" }}
+                </strong>
+
+            </div>
+
+
+            <div class="event-summary-item">
+
+                <small>VAGAS DISPONÍVEIS</small>
+
+                <strong>
+                    {{ vagas_disponiveis }}
+                    de {{ evento.limite_vagas }}
+                </strong>
+
+            </div>
+
+
+            <div class="event-summary-item">
+
+                <small>CARGA HORÁRIA</small>
+
+                <strong>
+                    {{ evento.carga_horaria }} horas
+                </strong>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}

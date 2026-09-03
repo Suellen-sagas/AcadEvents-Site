@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Validar Certificado | AcadEvents
+{% endblock %}
+
+
+{% block content %}
+
+<section>
+
+    <h1>Certificado válido ✅</h1>
+
+    <p>
+        Este certificado foi emitido pelo AcadEvents.
+    </p>
+
+    <hr>
+
+    <h2>
+        {{ evento.titulo }}
+    </h2>
+
+    <p>
+        <strong>Participante:</strong>
+        {{ estudante.get_full_name|default:estudante.username }}
+    </p>
+
+    <p>
+        <strong>Evento:</strong>
+        {{ evento.titulo }}
+    </p>
+
+    <p>
+        <strong>Data do evento:</strong>
+        {{ evento.data_inicio|date:"d/m/Y" }}
+    </p>
+
+    <p>
+        <strong>Carga horária:</strong>
+        {{ evento.carga_horaria }} horas
+    </p>
+
+    <p>
+        <strong>Emitido em:</strong>
+        {{ certificado.data_emissao|date:"d/m/Y H:i" }}
+    </p>
+
+    <p>
+        <strong>Código de validação:</strong>
+        {{ certificado.codigo_validacao }}
+    </p>
+
+</section>
+
+{% endblock %}

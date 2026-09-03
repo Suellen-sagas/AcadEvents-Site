@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Favoritos | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="student-page">
+
+    <div class="page-heading">
+
+        <div>
+            <span class="section-tag">
+                SALVOS
+            </span>
+
+            <h1>Meus Favoritos</h1>
+
+            <p>
+                Eventos que você quer acompanhar.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="student-grid">
+
+        {% for favorito in favoritos %}
+
+            <article class="student-card">
+
+                <div class="student-card-image">
+
+                    {% if favorito.evento.imagem %}
+
+                        <img
+                            src="{{ favorito.evento.imagem.url }}"
+                            alt="{{ favorito.evento.titulo }}"
+                        >
+
+                    {% else %}
+
+                        <div class="student-placeholder">
+                            AE
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="student-card-content">
+
+                    <div class="student-card-top">
+
+                        <span class="student-badge">
+                            {{ favorito.evento.get_categoria_display }}
+                        </span>
+
+                        <span class="student-mode">
+                            {{ favorito.evento.get_modalidade_display }}
+                        </span>
+
+                    </div>
+
+
+                    <h2>
+                        {{ favorito.evento.titulo }}
+                    </h2>
+
+
+                    <p>
+                        {{ favorito.evento.descricao|truncatewords:20 }}
+                    </p>
+
+
+                    <div class="student-info">
+
+                        <div>
+                            <small>DATA</small>
+
+                            <strong>
+                                {{ favorito.evento.data_inicio|date:"d/m/Y" }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <small>HORÁRIO</small>
+
+                            <strong>
+                                {{ favorito.evento.data_inicio|date:"H:i" }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'eventos:detalhe' favorito.evento.id %}"
+                        class="primary-link"
+                    >
+                        Ver evento
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </article>
+
+        {% empty %}
+
+            <div class="empty-student">
+
+                <div class="empty-icon">
+                    ☆
+                </div>
+
+                <h2>
+                    Nenhum evento salvo
+                </h2>
+
+                <p>
+                    Quando você favoritar um evento,
+                    ele aparecerá aqui.
+                </p>
+
+                <a href="{% url 'home' %}">
+                    Descobrir eventos
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

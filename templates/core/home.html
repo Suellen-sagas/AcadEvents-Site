@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}
+AcadEvents | Eventos Acadêmicos
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+
+    <div class="hero-text">
+
+        <span class="hero-tag">
+            ACADEVENTS
+        </span>
+
+        <h1>
+            Conecte-se a experiências que
+            <span>transformam sua formação.</span>
+        </h1>
+
+        <p>
+            Descubra palestras, workshops, cursos,
+            congressos e eventos acadêmicos em um só lugar.
+        </p>
+
+        <a href="#eventos" class="hero-button">
+            Explorar eventos
+        </a>
+
+    </div>
+
+    <div class="hero-decoration">
+        <div class="glow glow-one"></div>
+        <div class="glow glow-two"></div>
+
+        <div class="hero-card">
+
+            <span>AcadEvents</span>
+
+            <strong>
+                Seu próximo evento começa aqui.
+            </strong>
+
+            <p>
+                Descubra. Participe. Evolua.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- BUSCA -->
+<section class="search-box" id="eventos">
+
+    <div class="search-header">
+
+        <div>
+            <span class="section-tag">
+                DESCUBRA
+            </span>
+
+            <h2>
+                Encontre o evento ideal
+            </h2>
+        </div>
+
+        {% if busca or modalidade or categoria %}
+
+            <a href="{% url 'home' %}" class="clear-filter">
+                Limpar filtros
+            </a>
+
+        {% endif %}
+
+    </div>
+
+
+    <form method="GET" class="event-search-form">
+
+        <div class="search-field search-large">
+
+            <label>
+                Buscar
+            </label>
+
+            <input
+                type="text"
+                name="busca"
+                placeholder="Nome, tema ou local..."
+                value="{{ busca }}"
+            >
+
+        </div>
+
+
+        <div class="search-field">
+
+            <label>
+                Categoria
+            </label>
+
+            <select name="categoria">
+
+                <option value="">
+                    Todas
+                </option>
+
+                <option
+                    value="palestra"
+                    {% if categoria == 'palestra' %}selected{% endif %}
+                >
+                    Palestra
+                </option>
+
+                <option
+                    value="workshop"
+                    {% if categoria == 'workshop' %}selected{% endif %}
+                >
+                    Workshop
+                </option>
+
+                <option
+                    value="curso"
+                    {% if categoria == 'curso' %}selected{% endif %}
+                >
+                    Curso
+                </option>
+
+                <option
+                    value="seminario"
+                    {% if categoria == 'seminario' %}selected{% endif %}
+                >
+                    Seminário
+                </option>
+
+                <option
+                    value="congresso"
+                    {% if categoria == 'congresso' %}selected{% endif %}
+                >
+                    Congresso
+                </option>
+
+                <option
+                    value="feira"
+                    {% if categoria == 'feira' %}selected{% endif %}
+                >
+                    Feira Acadêmica
+                </option>
+
+                <option
+                    value="outro"
+                    {% if categoria == 'outro' %}selected{% endif %}
+                >
+                    Outro
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="search-field">
+
+            <label>
+                Modalidade
+            </label>
+
+            <select name="modalidade">
+
+                <option value="">
+                    Todas
+                </option>
+
+                <option
+                    value="presencial"
+                    {% if modalidade == 'presencial' %}selected{% endif %}
+                >
+                    Presencial
+                </option>
+
+                <option
+                    value="online"
+                    {% if modalidade == 'online' %}selected{% endif %}
+                >
+                    Online
+                </option>
+
+                <option
+                    value="hibrido"
+                    {% if modalidade == 'hibrido' %}selected{% endif %}
+                >
+                    Híbrido
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button type="submit" class="search-button">
+            Buscar eventos
+        </button>
+
+    </form>
+
+</section>
+
+
+<!-- ACONTECENDO AGORA -->
+
+{% if acontecendo_agora %}
+
+<section class="events-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <span class="live-label">
+                ● ACONTECENDO AGORA
+            </span>
+
+            <h2>
+                Eventos em andamento
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="events-grid">
+
+        {% for evento in acontecendo_agora %}
+
+            <article class="event-card">
+
+                <div class="event-image">
+
+                    {% if evento.imagem %}
+
+                        <img
+                            src="{{ evento.imagem.url }}"
+                            alt="{{ evento.titulo }}"
+                        >
+
+                    {% else %}
+
+                        <div class="event-image-placeholder">
+                            <span>AE</span>
+                        </div>
+
+                    {% endif %}
+
+                    <span class="event-status-live">
+                        AO VIVO
+                    </span>
+
+                </div>
+
+
+                <div class="event-content">
+
+                    <span class="event-category">
+                        {{ evento.get_categoria_display }}
+                    </span>
+
+                    <h3>
+                        {{ evento.titulo }}
+                    </h3>
+
+                    <p class="event-description">
+                        {{ evento.descricao|truncatewords:18 }}
+                    </p>
+
+                    <div class="event-meta">
+
+                        <span>
+                            {{ evento.get_modalidade_display }}
+                        </span>
+
+                        <span>
+                            {{ evento.carga_horaria }}h
+                        </span>
+
+                    </div>
+
+                    <a
+                        href="{% url 'eventos:detalhe' evento.id %}"
+                        class="event-link"
+                    >
+                        Ver evento
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endif %}
+
+
+<!-- PRÓXIMOS EVENTOS -->
+
+<section class="events-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <span class="section-tag">
+                PRÓXIMOS
+            </span>
+
+            <h2>
+                Eventos que estão chegando
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="events-grid">
+
+        {% for evento in proximos_eventos %}
+
+            <article class="event-card">
+
+                <div class="event-image">
+
+                    {% if evento.imagem %}
+
+                        <img
+                            src="{{ evento.imagem.url }}"
+                            alt="{{ evento.titulo }}"
+                        >
+
+                    {% else %}
+
+                        <div class="event-image-placeholder">
+                            <span>AE</span>
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="event-content">
+
+                    <div class="event-card-top">
+
+                        <span class="event-category">
+                            {{ evento.get_categoria_display }}
+                        </span>
+
+                        <span class="event-mode">
+                            {{ evento.get_modalidade_display }}
+                        </span>
+
+                    </div>
+
+
+                    <h3>
+                        {{ evento.titulo }}
+                    </h3>
+
+
+                    <p class="event-description">
+                        {{ evento.descricao|truncatewords:18 }}
+                    </p>
+
+
+                    <div class="event-details">
+
+                        <div>
+                            <small>DATA</small>
+
+                            <strong>
+                                {{ evento.data_inicio|date:"d/m/Y" }}
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <small>HORÁRIO</small>
+
+                            <strong>
+                                {{ evento.data_inicio|date:"H:i" }}
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <small>CARGA HORÁRIA</small>
+
+                            <strong>
+                                {{ evento.carga_horaria }}h
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'eventos:detalhe' evento.id %}"
+                        class="event-link"
+                    >
+                        Ver detalhes
+
+                        <span>
+                            →
+                        </span>
+                    </a>
+
+                </div>
+
+            </article>
+
+
+        {% empty %}
+
+            <div class="empty-events">
+
+                <div class="empty-icon">
+                    AE
+                </div>
+
+                <h3>
+                    Nenhum evento encontrado
+                </h3>
+
+                <p>
+                    Não encontramos eventos com esses filtros.
+                </p>
+
+                {% if busca or modalidade or categoria %}
+
+                    <a
+                        href="{% url 'home' %}"
+                        class="empty-button"
+                    >
+                        Ver todos os eventos
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<!-- FINAL -->
+
+<section class="home-cta">
+
+    <div>
+
+        <span class="section-tag">
+            ACADEVENTS
+        </span>
+
+        <h2>
+            Conhecimento também acontece fora da sala de aula.
+        </h2>
+
+        <p>
+            Encontre novas oportunidades,
+            participe e construa sua trajetória acadêmica.
+        </p>
+
+    </div>
+
+
+    {% if not user.is_authenticated %}
+
+        <a
+            href="{% url 'cadastro' %}"
+            class="cta-button"
+        >
+            Criar minha conta
+        </a>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

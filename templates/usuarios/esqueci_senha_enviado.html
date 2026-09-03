@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+E-mail enviado | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="password-page">
+
+    <div class="password-card">
+
+        <div class="password-header">
+
+            <span class="section-tag">
+                RECUPERAÇÃO
+            </span>
+
+            <div class="password-icon">
+                ✓
+            </div>
+
+            <h1>
+                Solicitação enviada
+            </h1>
+
+            <p>
+                Se existir uma conta cadastrada com esse e-mail,
+                enviaremos as instruções para redefinir a senha.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'login' %}"
+            class="event-enroll-button"
+        >
+            Voltar ao login
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Criar Conta | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="register-page">
+
+    <div class="register-header">
+
+        <span class="auth-tag">
+            FAÇA PARTE
+        </span>
+
+        <h1>
+            Crie sua conta
+        </h1>
+
+        <p>
+            Comece sua jornada no AcadEvents.
+        </p>
+
+    </div>
+
+
+    <div class="register-card">
+
+        <form method="POST" class="register-form">
+
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+
+                <div class="auth-error">
+                    {{ form.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div class="register-grid">
+
+                <div class="auth-field">
+                    <label>Nome</label>
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Sobrenome</label>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>E-mail</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Usuário</label>
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Tipo de conta</label>
+                    {{ form.tipo_usuario }}
+                    {{ form.tipo_usuario.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Instituição</label>
+                    {{ form.instituicao }}
+                    {{ form.instituicao.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Curso</label>
+                    {{ form.curso }}
+                    {{ form.curso.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Matrícula</label>
+                    {{ form.matricula }}
+                    {{ form.matricula.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Senha</label>
+                    {{ form.password1 }}
+                    {{ form.password1.errors }}
+                </div>
+
+                <div class="auth-field">
+                    <label>Confirmar senha</label>
+                    {{ form.password2 }}
+                    {{ form.password2.errors }}
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="auth-submit"
+            >
+                Criar minha conta
+            </button>
+
+        </form>
+
+
+        <div class="auth-bottom">
+
+            <p>
+                Já possui uma conta?
+            </p>
+
+            <a href="{% url 'login' %}">
+                Entrar
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

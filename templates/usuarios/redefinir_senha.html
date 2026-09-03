@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Nova Senha | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="password-page">
+
+    <div class="password-card">
+
+        <div class="password-header">
+
+            <span class="section-tag">
+                SEGURANÇA
+            </span>
+
+            <div class="password-icon">
+                AE
+            </div>
+
+            <h1>
+                Criar nova senha
+            </h1>
+
+            <p>
+                Escolha uma nova senha para sua conta.
+            </p>
+
+        </div>
+
+
+        {% if validlink %}
+
+            <form method="POST" class="password-form">
+
+                {% csrf_token %}
+
+                <div class="password-field">
+
+                    <label>
+                        Nova senha
+                    </label>
+
+                    {{ form.new_password1 }}
+
+                    {% if form.new_password1.errors %}
+                        <div class="field-errors">
+                            {{ form.new_password1.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="password-field">
+
+                    <label>
+                        Confirmar nova senha
+                    </label>
+
+                    {{ form.new_password2 }}
+
+                    {% if form.new_password2.errors %}
+                        <div class="field-errors">
+                            {{ form.new_password2.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <button type="submit" class="password-submit">
+                    Alterar senha
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <div class="auth-error">
+
+                Este link de recuperação é inválido ou já foi utilizado.
+
+            </div>
+
+            <a
+                href="{% url 'password_reset' %}"
+                class="event-enroll-button"
+            >
+                Solicitar novo link
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Meu Perfil | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="profile-page">
+
+    <div class="page-heading">
+
+        <div>
+
+            <span class="section-tag">
+                MINHA CONTA
+            </span>
+
+            <h1>
+                Meu Perfil
+            </h1>
+
+            <p>
+                Gerencie suas informações pessoais.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="profile-layout">
+
+        <aside class="profile-summary">
+
+            <div class="profile-avatar">
+
+                {% if user.first_name %}
+
+                    {{ user.first_name|first|upper }}
+
+                {% else %}
+
+                    {{ user.username|first|upper }}
+
+                {% endif %}
+
+            </div>
+
+
+            <h2>
+                {{ user.get_full_name|default:user.username }}
+            </h2>
+
+            <p>
+                @{{ user.username }}
+            </p>
+
+
+            <span class="profile-type">
+                {{ user.get_tipo_usuario_display }}
+            </span>
+
+
+            <hr>
+
+
+            {% if user.instituicao %}
+
+                <div class="profile-info">
+
+                    <small>
+                        INSTITUIÇÃO
+                    </small>
+
+                    <strong>
+                        {{ user.instituicao }}
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+
+            {% if user.curso %}
+
+                <div class="profile-info">
+
+                    <small>
+                        CURSO
+                    </small>
+
+                    <strong>
+                        {{ user.curso }}
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+
+            <a
+                href="{% url 'alterar_senha' %}"
+                class="profile-password"
+            >
+                Alterar senha
+            </a>
+
+        </aside>
+
+
+        <div class="profile-form-card">
+
+            <h2>
+                Informações pessoais
+            </h2>
+
+            <p>
+                Mantenha seus dados atualizados.
+            </p>
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <button type="submit">
+                    Salvar alterações
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

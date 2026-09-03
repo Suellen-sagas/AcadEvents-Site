@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Meus Eventos | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="student-page">
+
+    <div class="page-heading">
+
+        <div>
+            <span class="section-tag">
+                MINHA JORNADA
+            </span>
+
+            <h1>Meus Eventos</h1>
+
+            <p>
+                Acompanhe suas inscrições e acesse seu QR Code.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="student-grid">
+
+        {% for inscricao in inscricoes %}
+
+            <article class="student-card">
+
+                <div class="student-card-image">
+
+                    {% if inscricao.evento.imagem %}
+
+                        <img
+                            src="{{ inscricao.evento.imagem.url }}"
+                            alt="{{ inscricao.evento.titulo }}"
+                        >
+
+                    {% else %}
+
+                        <div class="student-placeholder">
+                            AE
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="student-card-content">
+
+                    <span class="student-badge">
+                        {{ inscricao.evento.get_categoria_display }}
+                    </span>
+
+                    <h2>
+                        {{ inscricao.evento.titulo }}
+                    </h2>
+
+
+                    <div class="student-info">
+
+                        <div>
+                            <small>DATA</small>
+
+                            <strong>
+                                {{ inscricao.evento.data_inicio|date:"d/m/Y" }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <small>HORÁRIO</small>
+
+                            <strong>
+                                {{ inscricao.evento.data_inicio|date:"H:i" }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <small>MODALIDADE</small>
+
+                            <strong>
+                                {{ inscricao.evento.get_modalidade_display }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="qr-area">
+
+                        <span>MEU QR CODE</span>
+
+                        <img
+                            src="{% url 'presencas:qr' inscricao.id %}"
+                            alt="QR Code da inscrição"
+                        >
+
+                        <small>
+                            Apresente este código no evento.
+                        </small>
+
+                    </div>
+
+
+                    <div class="student-actions">
+
+                        <a
+                            href="{% url 'eventos:detalhe' inscricao.evento.id %}"
+                            class="secondary-button"
+                        >
+                            Ver evento
+                        </a>
+
+
+                        <form
+                            method="POST"
+                            action="{% url 'inscricoes:cancelar' inscricao.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="danger-button"
+                            >
+                                Cancelar inscrição
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% empty %}
+
+            <div class="empty-student">
+
+                <div class="empty-icon">
+                    AE
+                </div>
+
+                <h2>
+                    Você ainda não possui inscrições
+                </h2>
+
+                <p>
+                    Explore os eventos disponíveis e encontre
+                    sua próxima experiência acadêmica.
+                </p>
+
+                <a href="{% url 'home' %}">
+                    Explorar eventos
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}
