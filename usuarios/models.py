@@ -31,6 +31,12 @@ class Usuario(AbstractUser):
         blank=True
     )
 
+    cpf = models.CharField(
+    max_length=14,
+    blank=True,
+    verbose_name='CPF'
+    )
+
     carteira_solana = models.CharField(
         max_length=44,
         blank=True,

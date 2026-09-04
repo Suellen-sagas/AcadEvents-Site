@@ -3,14 +3,23 @@ import csv
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
 from django.utils import timezone
 
+from planos.models import Plano
 from usuarios.decorators import somente_estudante
 
 from .forms import EventoForm
 from .models import Evento, Favorito
 
+
+# =========================================================
+# AUXILIAR - PERMISSÃO PARA GERENCIAR EVENTO
+# =========================================================
 
 def pode_gerenciar_evento(usuario, evento):
 
@@ -21,6 +30,10 @@ def pode_gerenciar_evento(usuario, evento):
     )
 
 
+# =========================================================
+# DETALHE DO EVENTO
+# =========================================================
+
 def detalhe_evento(request, evento_id):
 
     evento = get_object_or_404(
@@ -29,42 +42,62 @@ def detalhe_evento(request, evento_id):
         ativo=True
     )
 
+    agora = timezone.now()
+
     inscrito = False
     favoritado = False
 
+    # =====================================================
+    # USUÁRIO LOGADO
+    # =====================================================
+
     if request.user.is_authenticated:
 
+        # Inscrição usa "estudante"
         inscrito = evento.inscricoes.filter(
             estudante=request.user,
             status='confirmada'
         ).exists()
 
-        if request.user.tipo_usuario == 'estudante':
+        # Favorito usa "usuario"
+        favoritado = Favorito.objects.filter(
+            usuario=request.user,
+            evento=evento
+        ).exists()
 
-            favoritado = Favorito.objects.filter(
-                estudante=request.user,
-                evento=evento
-            ).exists()
+    # =====================================================
+    # VAGAS
+    # =====================================================
 
-    vagas_ocupadas = evento.inscricoes.filter(
-        status='confirmada'
-    ).count()
+    total_inscritos = (
+        evento.inscricoes
+        .filter(
+            status='confirmada'
+        )
+        .count()
+    )
 
     vagas_disponiveis = max(
-        evento.limite_vagas - vagas_ocupadas,
+        evento.limite_vagas - total_inscritos,
         0
     )
 
+    # =====================================================
+    # INSCRIÇÕES ABERTAS
+    # =====================================================
+
     inscricoes_abertas = (
-        evento.ativo
-        and timezone.now() <= evento.data_limite_inscricao
-        and vagas_disponiveis > 0
+        evento.permite_inscricoes
+        and evento.ativo
+        and agora <= evento.data_limite_inscricao
+        and agora < evento.data_inicio
     )
 
     contexto = {
         'evento': evento,
         'inscrito': inscrito,
         'favoritado': favoritado,
+        'total_inscritos': total_inscritos,
         'vagas_disponiveis': vagas_disponiveis,
         'inscricoes_abertas': inscricoes_abertas,
     }
@@ -76,6 +109,10 @@ def detalhe_evento(request, evento_id):
     )
 
 
+# =========================================================
+# PAINEL DO ORGANIZADOR
+# =========================================================
+
 @login_required
 def painel_organizador(request):
 
@@ -86,6 +123,7 @@ def painel_organizador(request):
             'administrador'
         )
     ):
+
         messages.error(
             request,
             'Você não possui acesso à área do organizador.'
@@ -94,6 +132,10 @@ def painel_organizador(request):
         return redirect('home')
 
     agora = timezone.now()
+
+    # =====================================================
+    # EVENTOS QUE O USUÁRIO PODE VER
+    # =====================================================
 
     if (
         request.user.is_superuser
@@ -108,7 +150,13 @@ def painel_organizador(request):
             organizador=request.user
         )
 
-    eventos = eventos.order_by('-criado_em')
+    eventos = eventos.order_by(
+        '-criado_em'
+    )
+
+    # =====================================================
+    # RESUMO
+    # =====================================================
 
     total_eventos = eventos.count()
 
@@ -119,17 +167,23 @@ def painel_organizador(request):
     proximos_eventos = eventos.filter(
         ativo=True,
         data_inicio__gt=agora
-    ).order_by('data_inicio')
+    ).order_by(
+        'data_inicio'
+    )
 
     eventos_em_andamento = eventos.filter(
         ativo=True,
         data_inicio__lte=agora,
         data_fim__gte=agora
-    ).order_by('data_fim')
+    ).order_by(
+        'data_fim'
+    )
 
     eventos_encerrados = eventos.filter(
         data_fim__lt=agora
-    ).order_by('-data_fim')
+    ).order_by(
+        '-data_fim'
+    )
 
     total_inscricoes = sum(
         evento.inscricoes.filter(
@@ -147,32 +201,48 @@ def painel_organizador(request):
     )
 
     if total_inscricoes > 0:
+
         taxa_presenca = round(
-            (total_presentes / total_inscricoes) * 100,
+            (
+                total_presentes
+                / total_inscricoes
+            ) * 100,
             1
         )
+
     else:
+
         taxa_presenca = 0
+
+    contexto = {
+        'eventos': eventos,
+        'total_eventos': total_eventos,
+        'eventos_ativos': eventos_ativos,
+        'total_inscricoes': total_inscricoes,
+        'total_presentes': total_presentes,
+        'taxa_presenca': taxa_presenca,
+        'proximos_eventos': proximos_eventos,
+        'eventos_em_andamento': eventos_em_andamento,
+        'eventos_encerrados': eventos_encerrados,
+    }
 
     return render(
         request,
         'eventos/painel_organizador.html',
-        {
-            'eventos': eventos,
-            'total_eventos': total_eventos,
-            'eventos_ativos': eventos_ativos,
-            'total_inscricoes': total_inscricoes,
-            'total_presentes': total_presentes,
-            'taxa_presenca': taxa_presenca,
-            'proximos_eventos': proximos_eventos,
-            'eventos_em_andamento': eventos_em_andamento,
-            'eventos_encerrados': eventos_encerrados,
-        }
+        contexto
     )
 
 
+# =========================================================
+# CRIAR EVENTO
+# =========================================================
+
 @login_required
 def criar_evento(request):
+
+    # =====================================================
+    # PERMISSÃO
+    # =====================================================
 
     if not (
         request.user.is_superuser
@@ -184,16 +254,51 @@ def criar_evento(request):
 
         messages.error(
             request,
-            'Somente organizadores podem criar eventos.'
+            'Apenas organizadores podem criar eventos.'
         )
 
         return redirect('home')
+
+    # =====================================================
+    # PLANO ESCOLHIDO
+    # =====================================================
+
+    plano_id = (
+        request.GET.get('plano')
+        or request.POST.get('plano')
+    )
+
+    # Se tentar abrir /eventos/criar/ diretamente,
+    # manda primeiro para a escolha dos planos.
+
+    if not plano_id:
+
+        messages.info(
+            request,
+            'Escolha um plano para criar seu evento.'
+        )
+
+        return redirect(
+            'planos:escolher'
+        )
+
+    plano_selecionado = get_object_or_404(
+        Plano,
+        id=plano_id,
+        ativo=True
+    )
+
+    # =====================================================
+    # POST - CRIAR EVENTO
+    # =====================================================
 
     if request.method == 'POST':
 
         form = EventoForm(
             request.POST,
-            request.FILES
+            request.FILES,
+            organizador=request.user,
+            plano_selecionado=plano_selecionado
         )
 
         if form.is_valid():
@@ -202,34 +307,60 @@ def criar_evento(request):
                 commit=False
             )
 
-            evento.organizador = request.user
+            evento.organizador = (
+                request.user
+            )
+
+            evento.plano = (
+                plano_selecionado
+            )
 
             evento.save()
 
             messages.success(
                 request,
-                'Evento criado com sucesso!'
+                (
+                    'Evento criado com sucesso '
+                    f'com o plano '
+                    f'{plano_selecionado.nome}!'
+                )
             )
 
             return redirect(
                 'eventos:painel_organizador'
             )
 
+    # =====================================================
+    # GET - MOSTRAR FORMULÁRIO
+    # =====================================================
+
     else:
 
-        form = EventoForm()
+        form = EventoForm(
+            organizador=request.user,
+            plano_selecionado=plano_selecionado
+        )
 
     return render(
         request,
-        'eventos/criar_evento.html',
+        'eventos/criar.html',
         {
-            'form': form
+            'form': form,
+            'plano_selecionado':
+                plano_selecionado,
         }
     )
 
 
+# =========================================================
+# GERENCIAR EVENTO
+# =========================================================
+
 @login_required
-def gerenciar_evento(request, evento_id):
+def gerenciar_evento(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
@@ -243,12 +374,19 @@ def gerenciar_evento(request, evento_id):
 
         messages.error(
             request,
-            'Você não tem permissão para gerenciar este evento.'
+            (
+                'Você não possui permissão '
+                'para gerenciar este evento.'
+            )
         )
 
         return redirect(
             'eventos:painel_organizador'
         )
+
+    # =====================================================
+    # PARTICIPANTES
+    # =====================================================
 
     inscricoes = (
         evento.inscricoes
@@ -260,30 +398,59 @@ def gerenciar_evento(request, evento_id):
             'presenca'
         )
         .order_by(
-            'estudante__first_name'
+            'estudante__first_name',
+            'estudante__username'
         )
     )
 
-    total_inscritos = inscricoes.count()
+    total_inscritos = (
+        inscricoes.count()
+    )
 
-    total_presentes = inscricoes.filter(
-        presenca__confirmada=True
-    ).count()
+    total_presentes = (
+        inscricoes
+        .filter(
+            presenca__confirmada=True
+        )
+        .count()
+    )
+
+    total_ausentes = (
+        total_inscritos
+        - total_presentes
+    )
+
+    vagas_disponiveis = max(
+        evento.limite_vagas
+        - total_inscritos,
+        0
+    )
+
+    contexto = {
+        'evento': evento,
+        'inscricoes': inscricoes,
+        'total_inscritos': total_inscritos,
+        'total_presentes': total_presentes,
+        'total_ausentes': total_ausentes,
+        'vagas_disponiveis': vagas_disponiveis,
+    }
 
     return render(
         request,
-        'eventos/gerenciar_evento.html',
-        {
-            'evento': evento,
-            'inscricoes': inscricoes,
-            'total_inscritos': total_inscritos,
-            'total_presentes': total_presentes,
-        }
+        'eventos/gerenciar.html',
+        contexto
     )
 
 
+# =========================================================
+# EDITAR EVENTO
+# =========================================================
+
 @login_required
-def editar_evento(request, evento_id):
+def editar_evento(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
@@ -297,12 +464,19 @@ def editar_evento(request, evento_id):
 
         messages.error(
             request,
-            'Você não tem permissão para editar este evento.'
+            (
+                'Você não possui permissão '
+                'para editar este evento.'
+            )
         )
 
         return redirect(
             'eventos:painel_organizador'
         )
+
+    # =====================================================
+    # POST
+    # =====================================================
 
     if request.method == 'POST':
 
@@ -326,6 +500,10 @@ def editar_evento(request, evento_id):
                 evento_id=evento.id
             )
 
+    # =====================================================
+    # GET
+    # =====================================================
+
     else:
 
         form = EventoForm(
@@ -334,16 +512,23 @@ def editar_evento(request, evento_id):
 
     return render(
         request,
-        'eventos/editar_evento.html',
+        'eventos/editar.html',
         {
             'form': form,
-            'evento': evento
+            'evento': evento,
         }
     )
 
 
+# =========================================================
+# RELATÓRIO DO EVENTO
+# =========================================================
+
 @login_required
-def relatorio_evento(request, evento_id):
+def relatorio_evento(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
@@ -357,12 +542,38 @@ def relatorio_evento(request, evento_id):
 
         messages.error(
             request,
-            'Você não tem permissão para acessar este relatório.'
+            (
+                'Você não possui permissão '
+                'para visualizar este relatório.'
+            )
         )
 
         return redirect(
             'eventos:painel_organizador'
         )
+
+    # =====================================================
+    # PLANO POSSUI RELATÓRIO?
+    # =====================================================
+
+    if not evento.permite_relatorios:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não inclui '
+                'acesso aos relatórios.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
+        )
+
+    # =====================================================
+    # DADOS
+    # =====================================================
 
     inscricoes = (
         evento.inscricoes
@@ -373,21 +584,32 @@ def relatorio_evento(request, evento_id):
             'estudante',
             'presenca'
         )
-        .order_by(
-            'estudante__first_name',
-            'estudante__last_name'
-        )
     )
 
-    total_inscritos = inscricoes.count()
+    total_inscritos = (
+        inscricoes.count()
+    )
 
-    total_presentes = inscricoes.filter(
-        presenca__confirmada=True
-    ).count()
+    total_presentes = (
+        inscricoes
+        .filter(
+            presenca__confirmada=True
+        )
+        .count()
+    )
 
     total_ausentes = (
         total_inscritos
         - total_presentes
+    )
+
+    total_certificados = (
+        inscricoes
+        .filter(
+            presenca__confirmada=True,
+            presenca__certificado__ativo=True
+        )
+        .count()
     )
 
     if total_inscritos > 0:
@@ -404,28 +626,32 @@ def relatorio_evento(request, evento_id):
 
         taxa_presenca = 0
 
-    certificados_emitidos = inscricoes.filter(
-        presenca__confirmada=True,
-        presenca__certificado__ativo=True
-    ).count()
+    contexto = {
+        'evento': evento,
+        'inscricoes': inscricoes,
+        'total_inscritos': total_inscritos,
+        'total_presentes': total_presentes,
+        'total_ausentes': total_ausentes,
+        'total_certificados': total_certificados,
+        'taxa_presenca': taxa_presenca,
+    }
 
     return render(
         request,
-        'eventos/relatorio_evento.html',
-        {
-            'evento': evento,
-            'inscricoes': inscricoes,
-            'total_inscritos': total_inscritos,
-            'total_presentes': total_presentes,
-            'total_ausentes': total_ausentes,
-            'taxa_presenca': taxa_presenca,
-            'certificados_emitidos': certificados_emitidos,
-        }
+        'eventos/relatorio.html',
+        contexto
     )
 
 
+# =========================================================
+# EXPORTAR RELATÓRIO CSV
+# =========================================================
+
 @login_required
-def exportar_relatorio_csv(request, evento_id):
+def exportar_relatorio_csv(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
@@ -439,11 +665,33 @@ def exportar_relatorio_csv(request, evento_id):
 
         messages.error(
             request,
-            'Você não tem permissão para exportar este relatório.'
+            (
+                'Você não possui permissão '
+                'para exportar este relatório.'
+            )
         )
 
         return redirect(
             'eventos:painel_organizador'
+        )
+
+    # =====================================================
+    # PLANO POSSUI RELATÓRIO?
+    # =====================================================
+
+    if not evento.permite_relatorios:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não inclui '
+                'exportação de relatórios.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
         )
 
     inscricoes = (
@@ -457,20 +705,31 @@ def exportar_relatorio_csv(request, evento_id):
         )
         .order_by(
             'estudante__first_name',
-            'estudante__last_name'
+            'estudante__username'
         )
     )
 
+    # =====================================================
+    # RESPOSTA CSV
+    # =====================================================
+
     response = HttpResponse(
-        content_type='text/csv; charset=utf-8'
+        content_type=(
+            'text/csv; charset=utf-8'
+        )
     )
 
-    response['Content-Disposition'] = (
+    response[
+        'Content-Disposition'
+    ] = (
         f'attachment; '
         f'filename="relatorio_evento_{evento.id}.csv"'
     )
 
-    response.write('\ufeff')
+    # BOM para o Excel entender UTF-8
+    response.write(
+        '\ufeff'
+    )
 
     writer = csv.writer(
         response,
@@ -479,78 +738,94 @@ def exportar_relatorio_csv(request, evento_id):
 
     writer.writerow([
         'Nome',
+        'Usuário',
         'E-mail',
         'Instituição',
         'Curso',
-        'Matrícula',
         'Status da inscrição',
         'Presença',
-        'Data da presença',
         'Certificado',
     ])
 
+    # =====================================================
+    # LINHAS
+    # =====================================================
+
     for inscricao in inscricoes:
 
-        estudante = inscricao.estudante
-        presenca = inscricao.presenca
-
-        nome = (
-            estudante.get_full_name()
-            or estudante.username
+        estudante = (
+            inscricao.estudante
         )
 
-        if presenca.confirmada:
-
-            status_presenca = 'Presente'
-
-            if presenca.data_confirmacao:
-
-                data_presenca = (
-                    presenca
-                    .data_confirmacao
-                    .strftime(
-                        '%d/%m/%Y %H:%M'
-                    )
-                )
-
-            else:
-
-                data_presenca = ''
-
-        else:
-
-            status_presenca = 'Ausente'
-            data_presenca = ''
-
-        certificado_emitido = (
-            'Sim'
-            if (
-                hasattr(
-                    presenca,
-                    'certificado'
-                )
-                and presenca.certificado.ativo
+        presenca_confirmada = (
+            hasattr(
+                inscricao,
+                'presenca'
             )
-            else 'Não'
+            and inscricao.presenca.confirmada
         )
+
+        certificado_emitido = False
+
+        if (
+            hasattr(
+                inscricao,
+                'presenca'
+            )
+            and hasattr(
+                inscricao.presenca,
+                'certificado'
+            )
+        ):
+
+            certificado_emitido = (
+                inscricao
+                .presenca
+                .certificado
+                .ativo
+            )
 
         writer.writerow([
-            nome,
+            (
+                estudante.get_full_name()
+                or estudante.username
+            ),
+
+            estudante.username,
+
             estudante.email,
+
             estudante.instituicao,
+
             estudante.curso,
-            estudante.matricula,
+
             inscricao.get_status_display(),
-            status_presenca,
-            data_presenca,
-            certificado_emitido,
+
+            (
+                'Presente'
+                if presenca_confirmada
+                else 'Ausente'
+            ),
+
+            (
+                'Emitido'
+                if certificado_emitido
+                else 'Não emitido'
+            ),
         ])
 
     return response
 
 
+# =========================================================
+# ATIVAR / DESATIVAR EVENTO
+# =========================================================
+
 @login_required
-def alterar_status_evento(request, evento_id):
+def alterar_status_evento(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
@@ -564,7 +839,10 @@ def alterar_status_evento(request, evento_id):
 
         messages.error(
             request,
-            'Você não tem permissão para alterar este evento.'
+            (
+                'Você não possui permissão '
+                'para alterar este evento.'
+            )
         )
 
         return redirect(
@@ -573,65 +851,88 @@ def alterar_status_evento(request, evento_id):
 
     if request.method == 'POST':
 
-        evento.ativo = not evento.ativo
-        evento.save()
+        evento.ativo = (
+            not evento.ativo
+        )
+
+        evento.save(
+            update_fields=[
+                'ativo'
+            ]
+        )
 
         if evento.ativo:
 
             messages.success(
                 request,
-                'Evento reativado com sucesso!'
+                'Evento ativado com sucesso.'
             )
 
         else:
 
             messages.success(
                 request,
-                'Evento desativado com sucesso!'
+                'Evento desativado com sucesso.'
             )
 
     return redirect(
-        'eventos:gerenciar',
-        evento_id=evento.id
+        'eventos:painel_organizador'
     )
 
+
+# =========================================================
+# FAVORITAR / DESFAVORITAR
+# =========================================================
 
 @login_required
 @somente_estudante
-def alternar_favorito(request, evento_id):
+def alternar_favorito(
+    request,
+    evento_id
+):
 
     evento = get_object_or_404(
         Evento,
-        id=evento_id
+        id=evento_id,
+        ativo=True
     )
 
-    if request.method == 'POST':
+    if request.method != 'POST':
 
-        favorito = Favorito.objects.filter(
-            estudante=request.user,
+        return redirect(
+            'eventos:detalhe',
+            evento_id=evento.id
+        )
+
+    favorito = (
+        Favorito.objects
+        .filter(
+            usuario=request.user,
             evento=evento
-        ).first()
+        )
+        .first()
+    )
 
-        if favorito:
+    if favorito:
 
-            favorito.delete()
+        favorito.delete()
 
-            messages.success(
-                request,
-                'Evento removido dos favoritos.'
-            )
+        messages.success(
+            request,
+            'Evento removido dos favoritos.'
+        )
 
-        else:
+    else:
 
-            Favorito.objects.create(
-                estudante=request.user,
-                evento=evento
-            )
+        Favorito.objects.create(
+            usuario=request.user,
+            evento=evento
+        )
 
-            messages.success(
-                request,
-                'Evento salvo nos favoritos!'
-            )
+        messages.success(
+            request,
+            'Evento adicionado aos favoritos.'
+        )
 
     return redirect(
         'eventos:detalhe',
@@ -639,28 +940,30 @@ def alternar_favorito(request, evento_id):
     )
 
 
+# =========================================================
+# MEUS FAVORITOS
+# =========================================================
+
 @login_required
 @somente_estudante
 def meus_favoritos(request):
 
-    favoritos = (
-        Favorito.objects
+    eventos = (
+        Evento.objects
         .filter(
-            estudante=request.user,
-            evento__ativo=True
-        )
-        .select_related(
-            'evento'
+            favoritos__usuario=request.user,
+            ativo=True
         )
         .order_by(
-            'evento__data_inicio'
+            'data_inicio'
         )
+        .distinct()
     )
 
     return render(
         request,
-        'eventos/meus_favoritos.html',
+        'eventos/favoritos.html',
         {
-            'favoritos': favoritos
+            'eventos': eventos
         }
     )

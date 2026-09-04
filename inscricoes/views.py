@@ -1,8 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
 from django.utils import timezone
 
 from eventos.models import Evento
@@ -13,9 +16,13 @@ from .models import Inscricao
 
 @login_required
 @somente_estudante
-def realizar_inscricao(request, evento_id):
+def realizar_inscricao(
+    request,
+    evento_id
+):
 
     if request.method != 'POST':
+
         return redirect(
             'eventos:detalhe',
             evento_id=evento_id
@@ -25,20 +32,27 @@ def realizar_inscricao(request, evento_id):
 
         with transaction.atomic():
 
-            # Bloqueia temporariamente este evento
-            # enquanto a inscrição está sendo processada.
-            evento = get_object_or_404(
-                Evento.objects.select_for_update(),
-                id=evento_id,
-                ativo=True
+            evento = (
+                Evento.objects
+                .select_for_update()
+                .get(
+                    id=evento_id,
+                    ativo=True
+                )
             )
 
-            # Verifica prazo de inscrição.
-            if timezone.now() > evento.data_limite_inscricao:
+            # =========================
+            # PLANO FREE
+            # =========================
+
+            if not evento.permite_inscricoes:
 
                 messages.error(
                     request,
-                    'O prazo de inscrição deste evento já terminou.'
+                    (
+                        'Este evento está disponível '
+                        'apenas para divulgação.'
+                    )
                 )
 
                 return redirect(
@@ -46,21 +60,45 @@ def realizar_inscricao(request, evento_id):
                     evento_id=evento.id
                 )
 
+            # =========================
+            # PRAZO
+            # =========================
 
-            # Procura inscrição anterior do estudante.
-            inscricao_existente = Inscricao.objects.filter(
-                estudante=request.user,
-                evento=evento
-            ).first()
-
-
-            # Já está inscrito.
             if (
-                inscricao_existente
-                and inscricao_existente.status == 'confirmada'
+                timezone.now()
+                > evento.data_limite_inscricao
             ):
 
-                messages.warning(
+                messages.error(
+                    request,
+                    'O prazo de inscrição terminou.'
+                )
+
+                return redirect(
+                    'eventos:detalhe',
+                    evento_id=evento.id
+                )
+
+            # =========================
+            # INSCRIÇÃO EXISTENTE
+            # =========================
+
+            inscricao_existente = (
+                Inscricao.objects
+                .filter(
+                    estudante=request.user,
+                    evento=evento
+                )
+                .first()
+            )
+
+            if (
+                inscricao_existente
+                and inscricao_existente.status
+                == 'confirmada'
+            ):
+
+                messages.info(
                     request,
                     'Você já está inscrito neste evento.'
                 )
@@ -70,20 +108,18 @@ def realizar_inscricao(request, evento_id):
                     evento_id=evento.id
                 )
 
+            if (
+                inscricao_existente
+                and inscricao_existente.status
+                == 'espera'
+            ):
 
-            # Conta somente inscrições válidas.
-            total_inscritos = Inscricao.objects.filter(
-                evento=evento,
-                status='confirmada'
-            ).count()
-
-
-            # Confere vagas.
-            if total_inscritos >= evento.limite_vagas:
-
-                messages.error(
+                messages.info(
                     request,
-                    'Não há mais vagas disponíveis para este evento.'
+                    (
+                        'Você já está na lista '
+                        'de espera deste evento.'
+                    )
                 )
 
                 return redirect(
@@ -91,31 +127,85 @@ def realizar_inscricao(request, evento_id):
                     evento_id=evento.id
                 )
 
+            # =========================
+            # QUANTIDADE DE VAGAS
+            # =========================
 
-            # Se já existia uma inscrição cancelada,
-            # reativa em vez de criar outra.
+            total_confirmados = (
+                evento.inscricoes
+                .filter(
+                    status='confirmada'
+                )
+                .count()
+            )
+
+            # =========================
+            # EVENTO LOTADO
+            # LISTA DE ESPERA
+            # =========================
+
+            if (
+                total_confirmados
+                >= evento.limite_vagas
+            ):
+
+                if inscricao_existente:
+
+                    inscricao_existente.status = (
+                        'espera'
+                    )
+
+                    inscricao_existente.full_clean()
+
+                    inscricao_existente.save(
+                        update_fields=[
+                            'status'
+                        ]
+                    )
+
+                else:
+
+                    inscricao = Inscricao(
+                        estudante=request.user,
+                        evento=evento,
+                        status='espera'
+                    )
+
+                    inscricao.full_clean()
+
+                    inscricao.save()
+
+                messages.info(
+                    request,
+                    (
+                        'O evento está lotado. '
+                        'Você entrou na lista de espera.'
+                    )
+                )
+
+                return redirect(
+                    'eventos:detalhe',
+                    evento_id=evento.id
+                )
+
+            # =========================
+            # CONFIRMA INSCRIÇÃO
+            # =========================
+
             if inscricao_existente:
 
-                inscricao_existente.status = 'confirmada'
+                inscricao_existente.status = (
+                    'confirmada'
+                )
 
-                try:
-                    inscricao_existente.full_clean()
-                    inscricao_existente.save()
+                inscricao_existente.full_clean()
 
-                except ValidationError as erro:
+                inscricao_existente.save(
+                    update_fields=[
+                        'status'
+                    ]
+                )
 
-                    messages.error(
-                        request,
-                        ' '.join(erro.messages)
-                    )
-
-                    return redirect(
-                        'eventos:detalhe',
-                        evento_id=evento.id
-                    )
-
-
-            # Caso contrário, cria nova inscrição.
             else:
 
                 inscricao = Inscricao(
@@ -124,36 +214,31 @@ def realizar_inscricao(request, evento_id):
                     status='confirmada'
                 )
 
-                try:
-                    inscricao.full_clean()
-                    inscricao.save()
+                inscricao.full_clean()
 
-                except ValidationError as erro:
+                inscricao.save()
 
-                    messages.error(
-                        request,
-                        ' '.join(erro.messages)
-                    )
+            messages.success(
+                request,
+                'Inscrição realizada com sucesso!'
+            )
 
-                    return redirect(
-                        'eventos:detalhe',
-                        evento_id=evento.id
-                    )
+    except Evento.DoesNotExist:
 
-
-        messages.success(
+        messages.error(
             request,
-            'Inscrição realizada com sucesso!'
+            'Evento não encontrado.'
         )
-
 
     except Exception:
 
         messages.error(
             request,
-            'Não foi possível concluir sua inscrição. Tente novamente.'
+            (
+                'Não foi possível realizar '
+                'a inscrição.'
+            )
         )
-
 
     return redirect(
         'eventos:detalhe',
@@ -182,22 +267,38 @@ def meus_eventos(request):
         )
     )
 
-    proximos_eventos = inscricoes.filter(
-        evento__data_fim__gte=agora
+    proximos_eventos = (
+        inscricoes
+        .filter(
+            evento__data_fim__gte=agora
+        )
     )
 
-    eventos_concluidos = inscricoes.filter(
-        evento__data_fim__lt=agora
-    ).order_by(
-        '-evento__data_fim'
+    eventos_concluidos = (
+        inscricoes
+        .filter(
+            evento__data_fim__lt=agora
+        )
+        .order_by(
+            '-evento__data_fim'
+        )
     )
 
     contexto = {
-        'proximos_eventos': proximos_eventos,
-        'eventos_concluidos': eventos_concluidos,
-        'total_inscricoes': inscricoes.count(),
-        'total_proximos': proximos_eventos.count(),
-        'total_concluidos': eventos_concluidos.count(),
+        'proximos_eventos':
+            proximos_eventos,
+
+        'eventos_concluidos':
+            eventos_concluidos,
+
+        'total_inscricoes':
+            inscricoes.count(),
+
+        'total_proximos':
+            proximos_eventos.count(),
+
+        'total_concluidos':
+            eventos_concluidos.count(),
     }
 
     return render(
@@ -209,16 +310,18 @@ def meus_eventos(request):
 
 @login_required
 @somente_estudante
-def cancelar_inscricao(request, inscricao_id):
+def cancelar_inscricao(
+    request,
+    inscricao_id
+):
 
     inscricao = get_object_or_404(
-        Inscricao,
+        Inscricao.objects.select_related(
+            'evento'
+        ),
         id=inscricao_id,
-        estudante=request.user,
-        status='confirmada'
+        estudante=request.user
     )
-
-    evento = inscricao.evento
 
     if request.method != 'POST':
 
@@ -226,11 +329,16 @@ def cancelar_inscricao(request, inscricao_id):
             'inscricoes:meus_eventos'
         )
 
+    evento = inscricao.evento
+
     if timezone.now() >= evento.data_inicio:
 
         messages.error(
             request,
-            'Não é possível cancelar a inscrição após o início do evento.'
+            (
+                'Não é possível cancelar a inscrição '
+                'após o início do evento.'
+            )
         )
 
         return redirect(
@@ -238,14 +346,19 @@ def cancelar_inscricao(request, inscricao_id):
         )
 
     if (
-        hasattr(inscricao, 'presenca')
+        hasattr(
+            inscricao,
+            'presenca'
+        )
         and inscricao.presenca.confirmada
     ):
 
         messages.error(
             request,
-            'Não é possível cancelar uma inscrição '
-            'com presença já confirmada.'
+            (
+                'Não é possível cancelar uma inscrição '
+                'com presença já confirmada.'
+            )
         )
 
         return redirect(
@@ -253,7 +366,12 @@ def cancelar_inscricao(request, inscricao_id):
         )
 
     inscricao.status = 'cancelada'
-    inscricao.save()
+
+    inscricao.save(
+        update_fields=[
+            'status'
+        ]
+    )
 
     messages.success(
         request,

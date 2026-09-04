@@ -4,202 +4,897 @@
 Editar Evento | AcadEvents
 {% endblock %}
 
+
 {% block content %}
 
 <section class="event-form-page">
 
+    <!-- =================================================
+         CABEÇALHO
+    ================================================== -->
+
     <div class="event-form-header">
 
         <div>
+
             <span class="section-tag">
-                EDIÇÃO
+                GERENCIAMENTO
             </span>
 
-            <h1>Editar Evento</h1>
+            <h1>
+                Editar evento
+            </h1>
 
             <p>
                 Atualize as informações de
                 <strong>{{ evento.titulo }}</strong>.
             </p>
+
         </div>
 
 
         <a
             href="{% url 'eventos:gerenciar' evento.id %}"
-            class="back-link"
+            class="organizer-secondary"
         >
-            ← Voltar ao gerenciamento
+            ← Voltar ao evento
         </a>
 
     </div>
 
 
-    <div class="event-form-layout">
+    <!-- =================================================
+         FORMULÁRIO
+    ================================================== -->
 
-        <div class="event-form-card">
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="event-form"
+    >
 
-            <div class="form-card-header">
+        {% csrf_token %}
 
-                <span>AE</span>
 
-                <div>
-                    <h2>Dados do evento</h2>
+        <!-- =================================================
+             ERROS GERAIS
+        ================================================== -->
+
+        {% if form.non_field_errors %}
+
+            <div class="form-errors">
+
+                {% for error in form.non_field_errors %}
 
                     <p>
-                        Faça as alterações necessárias e salve ao finalizar.
+                        {{ error }}
                     </p>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             01 - PLANO
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    01
+                </span>
+
+                <div>
+
+                    <h2>
+                        Plano do evento
+                    </h2>
+
+                    <p>
+                        Confira o plano e os recursos
+                        disponíveis para este evento.
+                    </p>
+
                 </div>
 
             </div>
 
 
-            <form
-                method="POST"
-                enctype="multipart/form-data"
-                class="event-form"
-            >
+            {% if evento.plano %}
 
-                {% csrf_token %}
+                <div class="selected-plan-card">
+
+                    <div>
+
+                        <span class="selected-plan-label">
+                            PLANO ATUAL
+                        </span>
+
+                        <h3>
+                            {{ evento.plano.nome }}
+                        </h3>
+
+                        <p>
+                            {{ evento.plano.descricao }}
+                        </p>
+
+                    </div>
 
 
-                {% if form.non_field_errors %}
+                    <div class="selected-plan-details">
 
-                    <div class="auth-error">
-                        {{ form.non_field_errors }}
+                        <div>
+
+                            <small>
+                                VALOR
+                            </small>
+
+                            {% if evento.plano.preco == 0 %}
+
+                                <strong>
+                                    GRÁTIS
+                                </strong>
+
+                            {% else %}
+
+                                <strong>
+                                    R$ {{ evento.plano.preco }}
+                                </strong>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                PARTICIPANTES
+                            </small>
+
+                            {% if evento.plano.tipo == 'free' %}
+
+                                <strong>
+                                    Divulgação
+                                </strong>
+
+                            {% elif evento.plano.limite_participantes %}
+
+                                <strong>
+                                    Até {{ evento.plano.limite_participantes }}
+                                </strong>
+
+                            {% else %}
+
+                                <strong>
+                                    Personalizado
+                                </strong>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'planos:escolher' %}"
+                        class="change-plan-link"
+                    >
+                        Ver outros planos
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="form-field">
+
+                <label for="{{ form.plano.id_for_label }}">
+                    Plano
+                </label>
+
+                {{ form.plano }}
+
+                <small class="form-help">
+                    Alterar o plano pode modificar os recursos
+                    disponíveis e o limite de participantes.
+                </small>
+
+
+                {% if form.plano.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.plano.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             02 - INFORMAÇÕES PRINCIPAIS
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    02
+                </span>
+
+                <div>
+
+                    <h2>
+                        Informações do evento
+                    </h2>
+
+                    <p>
+                        Atualize os principais dados apresentados
+                        aos participantes.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- TÍTULO -->
+
+            <div class="form-field">
+
+                <label for="{{ form.titulo.id_for_label }}">
+                    Título do evento
+                </label>
+
+                {{ form.titulo }}
+
+                {% if form.titulo.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.titulo.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- DESCRIÇÃO -->
+
+            <div class="form-field">
+
+                <label for="{{ form.descricao.id_for_label }}">
+                    Descrição
+                </label>
+
+                {{ form.descricao }}
+
+                {% if form.descricao.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.descricao.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- CATEGORIA / MODALIDADE -->
+
+            <div class="event-form-grid">
+
+                <div class="form-field">
+
+                    <label for="{{ form.categoria.id_for_label }}">
+                        Categoria
+                    </label>
+
+                    {{ form.categoria }}
+
+                    {% if form.categoria.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.categoria.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="{{ form.modalidade.id_for_label }}">
+                        Modalidade
+                    </label>
+
+                    {{ form.modalidade }}
+
+                    {% if form.modalidade.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.modalidade.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- LOCAL -->
+
+            <div class="form-field">
+
+                <label for="{{ form.local.id_for_label }}">
+                    Local
+                </label>
+
+                {{ form.local }}
+
+                <small class="form-help">
+                    Obrigatório para eventos presenciais.
+                    Em eventos online, pode ficar em branco.
+                </small>
+
+                {% if form.local.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.local.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             03 - DATA E HORÁRIO
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    03
+                </span>
+
+                <div>
+
+                    <h2>
+                        Data e horário
+                    </h2>
+
+                    <p>
+                        Atualize o período do evento
+                        e o prazo das inscrições.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="event-form-grid">
+
+                <!-- INÍCIO -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.data_inicio.id_for_label }}">
+                        Início
+                    </label>
+
+                    {{ form.data_inicio }}
+
+                    {% if form.data_inicio.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.data_inicio.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- FIM -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.data_fim.id_for_label }}">
+                        Término
+                    </label>
+
+                    {{ form.data_fim }}
+
+                    {% if form.data_fim.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.data_fim.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- PRAZO -->
+
+            <div class="form-field">
+
+                <label for="{{ form.data_limite_inscricao.id_for_label }}">
+                    Prazo para inscrição
+                </label>
+
+                {{ form.data_limite_inscricao }}
+
+                {% if form.data_limite_inscricao.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.data_limite_inscricao.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             04 - PARTICIPANTES
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    04
+                </span>
+
+                <div>
+
+                    <h2>
+                        Participantes
+                    </h2>
+
+                    <p>
+                        Configure a capacidade e a carga horária.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="event-form-grid">
+
+                <!-- VAGAS -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.limite_vagas.id_for_label }}">
+                        Número de vagas
+                    </label>
+
+                    {{ form.limite_vagas }}
+
+
+                    {% if evento.plano and evento.plano.limite_participantes %}
+
+                        <small class="form-help">
+                            Limite do plano {{ evento.plano.nome }}:
+                            {{ evento.plano.limite_participantes }}
+                            participantes.
+                        </small>
+
+                    {% endif %}
+
+
+                    {% if form.limite_vagas.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.limite_vagas.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- CARGA -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.carga_horaria.id_for_label }}">
+                        Carga horária
+                    </label>
+
+                    {{ form.carga_horaria }}
+
+                    <small class="form-help">
+                        Informe a duração total do evento em horas.
+                    </small>
+
+                    {% if form.carga_horaria.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.carga_horaria.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             05 - DIVULGAÇÃO
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    05
+                </span>
+
+                <div>
+
+                    <h2>
+                        Divulgação
+                    </h2>
+
+                    <p>
+                        Atualize a imagem pública do evento
+                        e a identidade utilizada no certificado.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- IMAGEM ATUAL -->
+
+            {% if evento.imagem %}
+
+                <div class="current-certificate-logo">
+
+                    <small>
+                        IMAGEM ATUAL DO EVENTO
+                    </small>
+
+                    <img
+                        src="{{ evento.imagem.url }}"
+                        alt="{{ evento.titulo }}"
+                    >
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- IMAGEM DO EVENTO -->
+
+            <div class="form-field">
+
+                <label for="{{ form.imagem.id_for_label }}">
+                    Imagem do evento
+                </label>
+
+                {{ form.imagem }}
+
+                <small class="form-help">
+                    Envie uma nova imagem somente se quiser
+                    substituir a imagem atual.
+                </small>
+
+                {% if form.imagem.errors %}
+
+                    <div class="field-errors">
+
+                        {% for error in form.imagem.errors %}
+
+                            <span>
+                                {{ error }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 LOGO DO CERTIFICADO
+            ================================================== -->
+
+            {% if evento.plano and evento.plano.permite_logo_certificado %}
+
+                <div class="form-field">
+
+                    <label for="{{ form.logo_certificado.id_for_label }}">
+                        Logo para o certificado
+                    </label>
+
+
+                    {% if evento.logo_certificado %}
+
+                        <div class="current-certificate-logo">
+
+                            <small>
+                                LOGO ATUAL DO CERTIFICADO
+                            </small>
+
+                            <img
+                                src="{{ evento.logo_certificado.url }}"
+                                alt="Logo do organizador"
+                            >
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {{ form.logo_certificado }}
+
+
+                    <small class="form-help">
+                        Logo da empresa, instituição, comunidade
+                        ou organizador responsável pelo evento.
+                        Ela será exibida nos certificados emitidos.
+                    </small>
+
+
+                    {% if form.logo_certificado.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.logo_certificado.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+            {% else %}
+
+                <div class="plan-resource-locked">
+
+                    🔒 Logo personalizada no certificado
+                    não está disponível neste plano.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================================
+             RESUMO
+        ================================================== -->
+
+        <div class="event-form-section">
+
+            <div class="event-form-section-header">
+
+                <span>
+                    06
+                </span>
+
+                <div>
+
+                    <h2>
+                        Antes de salvar
+                    </h2>
+
+                    <p>
+                        Confira os dados antes de atualizar o evento.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="event-plan-info">
+
+                <div>
+
+                    <small>
+                        EVENTO
+                    </small>
+
+                    <strong>
+                        {{ evento.titulo }}
+                    </strong>
+
+                </div>
+
+
+                {% if evento.plano %}
+
+                    <div>
+
+                        <small>
+                            PLANO
+                        </small>
+
+                        <strong>
+                            {{ evento.plano.nome }}
+                        </strong>
+
                     </div>
 
                 {% endif %}
 
 
-                {% for field in form %}
+                <div>
 
-                    <div class="event-form-field">
+                    <small>
+                        INSCRITOS ATUALMENTE
+                    </small>
 
-                        <label for="{{ field.id_for_label }}">
-
-                            {{ field.label }}
-
-                            {% if field.field.required %}
-                                <span class="required">*</span>
-                            {% endif %}
-
-                        </label>
-
-
-                        {{ field }}
-
-
-                        {% if field.help_text %}
-
-                            <small class="field-help">
-                                {{ field.help_text }}
-                            </small>
-
-                        {% endif %}
-
-
-                        {% if field.errors %}
-
-                            <div class="field-errors">
-                                {{ field.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-                {% endfor %}
-
-
-                <div class="event-form-actions">
-
-                    <a
-                        href="{% url 'eventos:gerenciar' evento.id %}"
-                        class="cancel-button"
-                    >
-                        Cancelar
-                    </a>
-
-
-                    <button
-                        type="submit"
-                        class="save-event-button"
-                    >
-                        Salvar alterações
-                    </button>
+                    <strong>
+                        {{ evento.total_inscritos }}
+                    </strong>
 
                 </div>
 
-            </form>
+            </div>
 
         </div>
 
 
-        <aside class="event-form-side edit-side">
+        <!-- =================================================
+             AÇÕES
+        ================================================== -->
 
-            <div class="form-side-icon">
-                AE
-            </div>
+        <div class="event-form-actions">
 
-            <span class="section-tag">
-                EVENTO
-            </span>
-
-            <h2>
-                {{ evento.titulo }}
-            </h2>
-
-
-            <div class="edit-event-data">
-
-                <div>
-                    <small>STATUS</small>
-
-                    {% if evento.ativo %}
-                        <strong class="status-green">
-                            Ativo
-                        </strong>
-                    {% else %}
-                        <strong class="status-red">
-                            Inativo
-                        </strong>
-                    {% endif %}
-                </div>
+            <a
+                href="{% url 'eventos:gerenciar' evento.id %}"
+                class="organizer-secondary"
+            >
+                Cancelar
+            </a>
 
 
-                <div>
-                    <small>DATA</small>
+            <button
+                type="submit"
+                class="organizer-primary"
+            >
+                Salvar alterações
+            </button>
 
-                    <strong>
-                        {{ evento.data_inicio|date:"d/m/Y" }}
-                    </strong>
-                </div>
+        </div>
 
-
-                <div>
-                    <small>MODALIDADE</small>
-
-                    <strong>
-                        {{ evento.get_modalidade_display }}
-                    </strong>
-                </div>
-
-
-                <div>
-                    <small>INSCRITOS</small>
-
-                    <strong>
-                        {{ evento.inscricoes.count }}
-                        /
-                        {{ evento.limite_vagas }}
-                    </strong>
-                </div>
-
-            </div>
-
-        </aside>
-
-    </div>
+    </form>
 
 </section>
 

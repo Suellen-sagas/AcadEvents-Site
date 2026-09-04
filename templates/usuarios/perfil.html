@@ -5,32 +5,43 @@
 Meu Perfil | AcadEvents
 {% endblock %}
 
+
 {% block content %}
 
 <section class="profile-page">
 
+    <!-- =================================================
+         CABEÇALHO
+    ================================================== -->
+
     <div class="page-heading">
 
-        <div>
+        <span class="section-tag">
+            MINHA CONTA
+        </span>
 
-            <span class="section-tag">
-                MINHA CONTA
-            </span>
+        <h1>
+            Meu Perfil
+        </h1>
 
-            <h1>
-                Meu Perfil
-            </h1>
-
-            <p>
-                Gerencie suas informações pessoais.
-            </p>
-
-        </div>
+        <p>
+            Mantenha seus dados atualizados para inscrições,
+            presença e emissão de certificados.
+        </p>
 
     </div>
 
 
+    <!-- =================================================
+         CONTEÚDO
+    ================================================== -->
+
     <div class="profile-layout">
+
+
+        <!-- =================================================
+             RESUMO DO PERFIL
+        ================================================== -->
 
         <aside class="profile-summary">
 
@@ -38,11 +49,11 @@ Meu Perfil | AcadEvents
 
                 {% if user.first_name %}
 
-                    {{ user.first_name|first|upper }}
+                    {{ user.first_name|slice:":1"|upper }}
 
                 {% else %}
 
-                    {{ user.username|first|upper }}
+                    {{ user.username|slice:":1"|upper }}
 
                 {% endif %}
 
@@ -50,135 +61,135 @@ Meu Perfil | AcadEvents
 
 
             <h2>
-                {{ user.get_full_name|default:user.username }}
+
+                {% if user.get_full_name %}
+
+                    {{ user.get_full_name }}
+
+                {% else %}
+
+                    {{ user.username }}
+
+                {% endif %}
+
             </h2>
 
-            <p>
+
+            <span class="profile-username">
                 @{{ user.username }}
-            </p>
-
-
-            <span class="profile-type">
-                {{ user.get_tipo_usuario_display }}
             </span>
 
 
-            <hr>
+            <div class="profile-type">
+
+                {% if user.is_superuser %}
+
+                    Administrador
+
+                {% else %}
+
+                    {{ user.get_tipo_usuario_display }}
+
+                {% endif %}
+
+            </div>
 
 
-            {% if user.instituicao %}
+            <!-- =================================================
+                 CARTEIRA SOLANA
+            ================================================== -->
 
-                <div class="profile-info">
-
-                    <small>
-                        INSTITUIÇÃO
-                    </small>
-
-                    <strong>
-                        {{ user.instituicao }}
-                    </strong>
-
-                </div>
-
-            {% endif %}
-
-
-            {% if user.curso %}
-
-                <div class="profile-info">
-
-                    <small>
-                        CURSO
-                    </small>
-
-                    <strong>
-                        {{ user.curso }}
-                    </strong>
-
-                </div>
-
-            {% endif %}
-                <div
-    id="solana-wallet-area"
-    class="solana-wallet-card"
-    data-save-url="{% url 'salvar_carteira_solana' %}"
-    data-remove-url="{% url 'remover_carteira_solana' %}"
-    data-challenge-url="{% url 'gerar_desafio_carteira' %}"
-    data-verify-url="{% url 'verificar_carteira_solana' %}"
->
-
-    <small>
-        CARTEIRA SOLANA
-    </small>
-
-    {% if user.carteira_solana %}
-
-        <div class="solana-connected">
-
-            <span class="solana-status">
-                ● CONECTADA
-            </span>
-
-            <strong
-                title="{{ user.carteira_solana }}"
+            <div
+                id="solana-wallet-area"
+                class="solana-wallet-card"
+                data-save-url="{% url 'salvar_carteira_solana' %}"
+                data-remove-url="{% url 'remover_carteira_solana' %}"
+                data-challenge-url="{% url 'gerar_desafio_carteira' %}"
+                data-verify-url="{% url 'verificar_carteira_solana' %}"
             >
-                {{ user.carteira_solana|slice:":6" }}...{{ user.carteira_solana|slice:"-6:" }}
-            </strong>
 
-            {% if user.carteira_solana_verificada %}
+                <small>
+                    CARTEIRA SOLANA
+                </small>
 
-    <span class="wallet-verified">
-        ✓ Carteira verificada
-    </span>
 
-{% else %}
+                {% if user.carteira_solana %}
 
-    <span class="wallet-pending">
-        Verificação pendente
-    </span>
+                    <div class="solana-connected">
 
-    <button
-        type="button"
-        id="verify-solana-wallet"
-        class="wallet-verify"
-    >
-        Verificar carteira
-    </button>
+                        <span class="solana-status">
+                            ● CONECTADA
+                        </span>
 
-{% endif %}
 
-            <button
-                type="button"
-                id="disconnect-solana-wallet"
-                class="wallet-disconnect"
-            >
-                Desconectar
-            </button>
+                        <strong
+                            title="{{ user.carteira_solana }}"
+                        >
+                            {{ user.carteira_solana|slice:":6" }}...{{ user.carteira_solana|slice:"-6:" }}
+                        </strong>
 
-        </div>
 
-    {% else %}
+                        {% if user.carteira_solana_verificada %}
 
-        <p>
-            Conecte uma carteira para utilizar
-            os recursos blockchain do AcadEvents.
-        </p>
+                            <span class="wallet-verified">
+                                ✓ Carteira verificada
+                            </span>
 
-        <button
-            type="button"
-            id="connect-solana-wallet"
-            class="wallet-connect"
-        >
-            Conectar carteira Solana
-        </button>
+                        {% else %}
 
-    {% endif %}
+                            <span class="wallet-pending">
+                                Verificação pendente
+                            </span>
 
-</div>
+
+                            <button
+                                type="button"
+                                id="verify-solana-wallet"
+                                class="wallet-verify"
+                            >
+                                Verificar carteira
+                            </button>
+
+                        {% endif %}
+
+
+                        <button
+                            type="button"
+                            id="disconnect-solana-wallet"
+                            class="wallet-disconnect"
+                        >
+                            Desconectar carteira
+                        </button>
+
+                    </div>
+
+
+                {% else %}
+
+                    <p>
+                        Conecte uma carteira para utilizar
+                        os recursos blockchain do AcadEvents.
+                    </p>
+
+
+                    <button
+                        type="button"
+                        id="connect-solana-wallet"
+                        class="wallet-connect"
+                    >
+                        Conectar carteira Solana
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ALTERAR SENHA -->
 
             <a
                 href="{% url 'alterar_senha' %}"
-                class="profile-password"
+                class="profile-password-link"
             >
                 Alterar senha
             </a>
@@ -186,26 +197,318 @@ Meu Perfil | AcadEvents
         </aside>
 
 
+        <!-- =================================================
+             FORMULÁRIO
+        ================================================== -->
+
         <div class="profile-form-card">
 
-            <h2>
-                Informações pessoais
-            </h2>
+            <div class="profile-form-header">
 
-            <p>
-                Mantenha seus dados atualizados.
-            </p>
+                <span class="section-tag">
+                    INFORMAÇÕES
+                </span>
+
+                <h2>
+                    Dados pessoais
+                </h2>
+
+                <p>
+                    Alguns destes dados serão utilizados
+                    para emissão dos seus certificados.
+                </p>
+
+            </div>
 
 
-            <form method="POST">
+            <form
+                method="POST"
+                class="profile-form"
+            >
 
                 {% csrf_token %}
 
-                {{ form.as_p }}
 
-                <button type="submit">
-                    Salvar alterações
-                </button>
+                <!-- ERROS GERAIS -->
+
+                {% if form.non_field_errors %}
+
+                    <div class="form-errors">
+
+                        {% for error in form.non_field_errors %}
+
+                            <p>
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     NOME E SOBRENOME
+                ================================================== -->
+
+                <div class="profile-form-grid">
+
+                    <div class="form-field">
+
+                        <label for="{{ form.first_name.id_for_label }}">
+                            Nome
+                        </label>
+
+                        {{ form.first_name }}
+
+                        {% if form.first_name.errors %}
+
+                            <div class="field-errors">
+
+                                {% for error in form.first_name.errors %}
+
+                                    <span>
+                                        {{ error }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="{{ form.last_name.id_for_label }}">
+                            Sobrenome
+                        </label>
+
+                        {{ form.last_name }}
+
+                        {% if form.last_name.errors %}
+
+                            <div class="field-errors">
+
+                                {% for error in form.last_name.errors %}
+
+                                    <span>
+                                        {{ error }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     EMAIL
+                ================================================== -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.email.id_for_label }}">
+                        E-mail
+                    </label>
+
+                    {{ form.email }}
+
+                    {% if form.email.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.email.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- =================================================
+                     CPF
+                ================================================== -->
+
+                <div class="form-field">
+
+                    <label for="{{ form.cpf.id_for_label }}">
+                        CPF
+                    </label>
+
+                    {{ form.cpf }}
+
+                    <small class="form-help">
+                        Utilizado para identificação e emissão
+                        de certificados. O CPF não é enviado
+                        para a blockchain.
+                    </small>
+
+                    {% if form.cpf.errors %}
+
+                        <div class="field-errors">
+
+                            {% for error in form.cpf.errors %}
+
+                                <span>
+                                    {{ error }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- =================================================
+                     DADOS ACADÊMICOS
+                ================================================== -->
+
+                <div class="profile-form-section">
+
+                    <div class="profile-form-section-header">
+
+                        <span class="section-tag">
+                            FORMAÇÃO
+                        </span>
+
+                        <h3>
+                            Dados acadêmicos
+                        </h3>
+
+                        <p>
+                            Essas informações poderão aparecer
+                            nos certificados emitidos pelo AcadEvents.
+                        </p>
+
+                    </div>
+
+
+                    <!-- INSTITUIÇÃO -->
+
+                    <div class="form-field">
+
+                        <label for="{{ form.instituicao.id_for_label }}">
+                            Instituição
+                        </label>
+
+                        {{ form.instituicao }}
+
+                        {% if form.instituicao.errors %}
+
+                            <div class="field-errors">
+
+                                {% for error in form.instituicao.errors %}
+
+                                    <span>
+                                        {{ error }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- CURSO -->
+
+                    <div class="form-field">
+
+                        <label for="{{ form.curso.id_for_label }}">
+                            Curso
+                        </label>
+
+                        {{ form.curso }}
+
+                        {% if form.curso.errors %}
+
+                            <div class="field-errors">
+
+                                {% for error in form.curso.errors %}
+
+                                    <span>
+                                        {{ error }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- MATRÍCULA -->
+
+                    <div class="form-field">
+
+                        <label for="{{ form.matricula.id_for_label }}">
+                            Matrícula
+                        </label>
+
+                        {{ form.matricula }}
+
+                        <small class="form-help">
+                            Caso sua instituição utilize matrícula acadêmica.
+                        </small>
+
+                        {% if form.matricula.errors %}
+
+                            <div class="field-errors">
+
+                                {% for error in form.matricula.errors %}
+
+                                    <span>
+                                        {{ error }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     AÇÃO
+                ================================================== -->
+
+                <div class="profile-form-actions">
+
+                    <button
+                        type="submit"
+                        class="organizer-primary"
+                    >
+                        Salvar alterações
+                    </button>
+
+                </div>
 
             </form>
 
@@ -214,6 +517,11 @@ Meu Perfil | AcadEvents
     </div>
 
 </section>
+
+
+<!-- =================================================
+     JAVASCRIPT SOLANA
+================================================== -->
 
 <script
     type="module"

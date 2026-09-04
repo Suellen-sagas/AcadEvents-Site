@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Planos | AcadEvents
+{% endblock %}
+
+
+{% block content %}
+
+<section class="plans-page">
+
+    <!-- CABEÇALHO -->
+
+    <div class="plans-header">
+
+        <span class="section-tag">
+            PARA ORGANIZADORES
+        </span>
+
+        <h1>
+            Escolha como publicar seu evento
+        </h1>
+
+        <p>
+            Divulgue gratuitamente ou tenha acesso
+            às ferramentas completas de gestão do AcadEvents.
+        </p>
+
+    </div>
+
+
+    <!-- EVENTO AVULSO -->
+
+    <div class="plans-section">
+
+        <div class="plans-section-title">
+
+            <span>
+                EVENTO AVULSO
+            </span>
+
+            <h2>
+                Escolha de acordo com o tamanho do seu evento
+            </h2>
+
+            <p>
+                Pagamento único por evento.
+            </p>
+
+        </div>
+
+
+        <div class="plans-grid">
+
+            {% for plano in planos_avulsos %}
+
+                <article
+                    class="
+                        plan-card
+                        {% if plano.nome == 'Pro' %}
+                            plan-featured
+                        {% endif %}
+                    "
+                >
+
+                    {% if plano.nome == 'Pro' %}
+
+                        <div class="plan-popular">
+                            MAIS ESCOLHIDO
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="plan-card-header">
+
+                        <span class="plan-type">
+                            {{ plano.get_tipo_display }}
+                        </span>
+
+                        <h3>
+                            {{ plano.nome }}
+                        </h3>
+
+                        <p>
+                            {{ plano.descricao }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="plan-price">
+
+                        {% if plano.preco == 0 %}
+
+                            <strong>
+                                GRÁTIS
+                            </strong>
+
+                        {% else %}
+
+                            <small>
+                                R$
+                            </small>
+
+                            <strong>
+                                {{ plano.preco }}
+                            </strong>
+
+                            <span>
+                                / evento
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="plan-limit">
+
+                        {% if plano.tipo == 'free' %}
+
+                            <strong>
+                                Somente divulgação
+                            </strong>
+
+                            <small>
+                                Sem limite de visualizações
+                            </small>
+
+                        {% elif plano.limite_participantes %}
+
+                            <strong>
+                                Até {{ plano.limite_participantes }}
+                            </strong>
+
+                            <small>
+                                participantes
+                            </small>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="plan-features">
+
+                        <div class="plan-feature enabled">
+                            ✓ Divulgação do evento
+                        </div>
+
+                        <div class="plan-feature enabled">
+                            ✓ Página pública
+                        </div>
+
+
+                        {% if plano.permite_inscricoes %}
+
+                            <div class="plan-feature enabled">
+                                ✓ Inscrições pelo AcadEvents
+                            </div>
+
+                        {% else %}
+
+                            <div class="plan-feature disabled">
+                                — Inscrições pela plataforma
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.permite_qr_code %}
+
+                            <div class="plan-feature enabled">
+                                ✓ QR Code
+                            </div>
+
+                        {% else %}
+
+                            <div class="plan-feature disabled">
+                                — QR Code
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.permite_presenca %}
+
+                            <div class="plan-feature enabled">
+                                ✓ Controle de presença
+                            </div>
+
+                        {% else %}
+
+                            <div class="plan-feature disabled">
+                                — Controle de presença
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.permite_certificados %}
+
+                            <div class="plan-feature enabled">
+                                ✓ Certificados
+                            </div>
+
+                        {% else %}
+
+                            <div class="plan-feature disabled">
+                                — Certificados
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.permite_relatorios %}
+
+                            <div class="plan-feature enabled">
+                                ✓ Relatórios
+                            </div>
+
+                        {% else %}
+
+                            <div class="plan-feature disabled">
+                                — Relatórios
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.permite_solana %}
+
+                            <div class="plan-feature enabled solana-feature">
+                                ⛓ Certificação com Solana
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if plano.prioridade_divulgacao %}
+
+                            <div class="plan-feature enabled">
+                                ★ Prioridade na divulgação
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'eventos:criar' %}?plano={{ plano.id }}"
+                        class="
+                            plan-button
+                            {% if plano.nome == 'Pro' %}
+                                plan-button-featured
+                            {% endif %}
+                        "
+                    >
+
+                        {% if plano.tipo == 'free' %}
+
+                            Publicar gratuitamente
+
+                        {% else %}
+
+                            Escolher {{ plano.nome }}
+
+                        {% endif %}
+
+                    </a>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ASSINATURAS -->
+
+    {% if assinaturas %}
+
+        <div class="plans-section subscriptions-section">
+
+            <div class="plans-section-title">
+
+                <span>
+                    PARA QUEM ORGANIZA SEMPRE
+                </span>
+
+                <h2>
+                    Assinaturas
+                </h2>
+
+                <p>
+                    Economize se você realiza vários eventos durante o mês.
+                </p>
+
+            </div>
+
+
+            <div class="subscription-grid">
+
+                {% for plano in assinaturas %}
+
+                    <article class="subscription-card">
+
+                        <div>
+
+                            <span class="plan-type">
+                                ASSINATURA
+                            </span>
+
+                            <h3>
+                                {{ plano.nome }}
+                            </h3>
+
+                            <p>
+                                {{ plano.descricao }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="subscription-numbers">
+
+                            <div>
+
+                                <small>
+                                    EVENTOS
+                                </small>
+
+                                <strong>
+                                    {{ plano.limite_eventos_mes }}
+                                </strong>
+
+                                <span>
+                                    / mês
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    PARTICIPANTES
+                                </small>
+
+                                <strong>
+                                    {{ plano.limite_participantes }}
+                                </strong>
+
+                                <span>
+                                    / mês
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="subscription-price">
+
+                            <small>
+                                R$
+                            </small>
+
+                            <strong>
+                                {{ plano.preco }}
+                            </strong>
+
+                            <span>
+                                / mês
+                            </span>
+
+                        </div>
+
+
+                        <div class="plan-features">
+
+                            <div class="plan-feature enabled">
+                                ✓ Inscrições
+                            </div>
+
+                            <div class="plan-feature enabled">
+                                ✓ QR Code
+                            </div>
+
+                            <div class="plan-feature enabled">
+                                ✓ Controle de presença
+                            </div>
+
+                            <div class="plan-feature enabled">
+                                ✓ Certificados
+                            </div>
+
+                            <div class="plan-feature enabled">
+                                ✓ Relatórios
+                            </div>
+
+                            <div class="plan-feature enabled">
+                                ⛓ Solana
+                            </div>
+
+
+                            {% if plano.prioridade_divulgacao %}
+
+                                <div class="plan-feature enabled">
+                                    ★ Prioridade na divulgação
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <a
+                            href="{% url 'eventos:criar' %}?plano={{ plano.id }}"
+                            class="plan-button"
+                        >
+                            Escolher {{ plano.nome }}
+                        </a>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="plans-footer">
+
+        <p>
+            Precisa organizar um evento com mais de
+            500 participantes ou possui necessidades específicas?
+        </p>
+
+        <strong>
+            Fale conosco sobre o plano Institucional.
+        </strong>
+
+    </div>
+
+</section>
+
+{% endblock %}

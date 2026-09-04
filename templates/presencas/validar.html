@@ -8,154 +8,312 @@ Validar Presença | AcadEvents
 
 <section class="checkin-page">
 
-    <div class="checkin-card">
+    <div class="checkin-container">
+
+        <!-- CABEÇALHO -->
 
         <div class="checkin-header">
 
             <span class="section-tag">
-                CHECK-IN
+                CHECK-IN ACADEVENTS
             </span>
-
-            <div class="checkin-icon">
-                AE
-            </div>
 
             {% if presenca.confirmada %}
 
-                <span class="checkin-status confirmed">
-                    ✓ PRESENÇA CONFIRMADA
-                </span>
+                <div class="checkin-status checkin-status-success">
+                    <span>✓</span>
+
+                    <div>
+                        <small>STATUS</small>
+                        <h1>Presença já registrada</h1>
+                    </div>
+                </div>
 
             {% else %}
 
-                <span class="checkin-status pending">
-                    AGUARDANDO CONFIRMAÇÃO
-                </span>
+                <div class="checkin-status checkin-status-valid">
+                    <span>✓</span>
+
+                    <div>
+                        <small>QR CODE</small>
+                        <h1>QR Code válido</h1>
+                    </div>
+                </div>
 
             {% endif %}
 
-            <h1>
-                {{ inscricao.estudante.get_full_name|default:inscricao.estudante.username }}
-            </h1>
-
-            <p>
-                Confira os dados antes de registrar a presença.
-            </p>
-
         </div>
 
 
-        <div class="checkin-event">
+        <!-- PARTICIPANTE -->
 
-            <small>EVENTO</small>
+        <div class="checkin-participant-card">
 
-            <h2>
-                {{ evento.titulo }}
-            </h2>
+            <div class="checkin-avatar">
 
-        </div>
+                {% if inscricao.estudante.first_name %}
 
+                    {{ inscricao.estudante.first_name|slice:":1"|upper }}
 
-        <div class="checkin-data">
+                {% else %}
 
-            <div>
-                <small>E-MAIL</small>
-
-                <strong>
-                    {{ inscricao.estudante.email }}
-                </strong>
-            </div>
-
-
-            <div>
-                <small>INSTITUIÇÃO</small>
-
-                <strong>
-                    {{ inscricao.estudante.instituicao|default:"Não informada" }}
-                </strong>
-            </div>
-
-
-            <div>
-                <small>CURSO</small>
-
-                <strong>
-                    {{ inscricao.estudante.curso|default:"Não informado" }}
-                </strong>
-            </div>
-
-
-            <div>
-                <small>MATRÍCULA</small>
-
-                <strong>
-                    {{ inscricao.estudante.matricula|default:"Não informada" }}
-                </strong>
-            </div>
-
-
-            <div>
-                <small>DATA DO EVENTO</small>
-
-                <strong>
-                    {{ evento.data_inicio|date:"d/m/Y H:i" }}
-                </strong>
-            </div>
-
-
-            <div>
-                <small>INSCRIÇÃO</small>
-
-                <strong>
-                    Confirmada
-                </strong>
-            </div>
-
-        </div>
-
-
-        {% if presenca.confirmada %}
-
-            <div class="checkin-confirmed-box">
-
-                <strong>
-                    ✓ Check-in realizado
-                </strong>
-
-                {% if presenca.data_confirmacao %}
-
-                    <span>
-                        {{ presenca.data_confirmacao|date:"d/m/Y H:i" }}
-                    </span>
+                    {{ inscricao.estudante.username|slice:":1"|upper }}
 
                 {% endif %}
 
             </div>
 
+
+            <div class="checkin-participant-main">
+
+                <small>
+                    PARTICIPANTE
+                </small>
+
+                <h2>
+
+                    {% if inscricao.estudante.get_full_name %}
+
+                        {{ inscricao.estudante.get_full_name }}
+
+                    {% else %}
+
+                        {{ inscricao.estudante.username }}
+
+                    {% endif %}
+
+                </h2>
+
+                <span>
+                    {{ inscricao.estudante.email|default:"E-mail não informado" }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- DADOS -->
+
+        <div class="checkin-data-grid">
+
+            <div>
+
+                <small>
+                    INSTITUIÇÃO
+                </small>
+
+                <strong>
+                    {{ inscricao.estudante.instituicao|default:"Não informada" }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    CURSO
+                </small>
+
+                <strong>
+                    {{ inscricao.estudante.curso|default:"Não informado" }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    MATRÍCULA
+                </small>
+
+                <strong>
+                    {{ inscricao.estudante.matricula|default:"Não informada" }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <small>
+                    INSCRIÇÃO
+                </small>
+
+                <strong class="checkin-confirmed">
+                    ✓ {{ inscricao.get_status_display }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- EVENTO -->
+
+        <div class="checkin-event-card">
+
+            <div class="checkin-event-header">
+
+                <div>
+
+                    <small>
+                        EVENTO
+                    </small>
+
+                    <h2>
+                        {{ evento.titulo }}
+                    </h2>
+
+                </div>
+
+                <span class="student-badge">
+                    {{ evento.get_modalidade_display }}
+                </span>
+
+            </div>
+
+
+            <div class="checkin-event-details">
+
+                <div>
+
+                    <small>
+                        DATA
+                    </small>
+
+                    <strong>
+                        {{ evento.data_inicio|date:"d/m/Y" }}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        HORÁRIO
+                    </small>
+
+                    <strong>
+                        {{ evento.data_inicio|date:"H:i" }}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        CARGA HORÁRIA
+                    </small>
+
+                    <strong>
+                        {{ evento.carga_horaria }}h
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRESENÇA -->
+
+        {% if presenca.confirmada %}
+
+            <div class="checkin-completed">
+
+                <div class="checkin-completed-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <small>
+                        PRESENÇA
+                    </small>
+
+                    <strong>
+                        Presença confirmada
+                    </strong>
+
+                    {% if presenca.data_confirmacao %}
+
+                        <span>
+                            Registrada em
+                            {{ presenca.data_confirmacao|date:"d/m/Y H:i" }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
         {% else %}
 
-            <form method="POST" class="checkin-form">
+            <div class="checkin-confirm-box">
 
-                {% csrf_token %}
+                <div>
 
-                <button
-                    type="submit"
-                    class="checkin-button"
-                >
-                    Confirmar presença
-                </button>
+                    <small>
+                        CONFIRMAÇÃO
+                    </small>
 
-            </form>
+                    <h3>
+                        Os dados estão corretos?
+                    </h3>
+
+                    <p>
+                        Confirme a presença somente após verificar
+                        a identidade do participante.
+                    </p>
+
+                </div>
+
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="checkin-confirm-button"
+                    >
+                        ✓ Confirmar presença
+                    </button>
+
+                </form>
+
+            </div>
 
         {% endif %}
 
 
-        <a
-            href="{% url 'eventos:gerenciar' evento.id %}"
-            class="checkin-back"
-        >
-            ← Voltar ao gerenciamento
-        </a>
+        <!-- AÇÕES -->
+
+        <div class="checkin-actions">
+
+            <a
+                href="{% url 'presencas:leitor' evento.id %}"
+                class="organizer-primary"
+            >
+                Ler próximo QR Code
+            </a>
+
+
+            <a
+                href="{% url 'eventos:gerenciar' evento.id %}"
+                class="organizer-secondary"
+            >
+                Voltar ao evento
+            </a>
+
+        </div>
 
     </div>
 

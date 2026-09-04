@@ -1,80 +1,122 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
 Meus Certificados | AcadEvents
 {% endblock %}
 
+
 {% block content %}
 
 <section class="student-page">
 
+    <!-- CABEÇALHO -->
+
     <div class="page-heading">
 
-        <div>
-            <span class="section-tag">
-                CONQUISTAS
-            </span>
+        <span class="section-tag">
+            MINHA JORNADA
+        </span>
 
-            <h1>Meus Certificados</h1>
+        <h1>
+            Meus Certificados
+        </h1>
 
-            <p>
-                Seus certificados acadêmicos em um só lugar.
-            </p>
-        </div>
+        <p>
+            Consulte e baixe os certificados dos eventos
+            em que sua presença foi confirmada.
+        </p>
 
     </div>
 
 
-    <div class="certificate-grid">
+    <!-- LISTA DE CERTIFICADOS -->
+
+    <div class="student-grid">
 
         {% for certificado in certificados %}
 
-            <article class="certificate-card">
+            <article class="student-card certificate-card">
 
-                <div class="certificate-top">
+                <div class="student-card-content">
 
-                    <div class="certificate-icon">
-                        AE
+                    <!-- TOPO -->
+
+                    <div class="student-card-top">
+
+                        <span class="student-badge">
+                            CERTIFICADO
+                        </span>
+
+                        <span class="presence-confirmed">
+                            ✓ Válido
+                        </span>
+
                     </div>
 
-                    <span class="certificate-status">
-                        CERTIFICADO
-                    </span>
 
-                </div>
-
-
-                <div class="certificate-content">
-
-                    <span class="student-badge">
-                        {{ certificado.presenca.inscricao.evento.get_categoria_display }}
-                    </span>
+                    <!-- EVENTO -->
 
                     <h2>
                         {{ certificado.presenca.inscricao.evento.titulo }}
                     </h2>
 
 
-                    <div class="certificate-data">
+                    <p>
+                        Certificado de participação emitido pelo AcadEvents.
+                    </p>
 
-                        <p>
-                            <small>CARGA HORÁRIA</small>
+
+                    <!-- INFORMAÇÕES -->
+
+                    <div class="student-info">
+
+                        <div>
+
+                            <small>
+                                PARTICIPANTE
+                            </small>
 
                             <strong>
-                                {{ certificado.presenca.inscricao.evento.carga_horaria }} horas
+                                {% if certificado.presenca.inscricao.estudante.get_full_name %}
+                                    {{ certificado.presenca.inscricao.estudante.get_full_name }}
+                                {% else %}
+                                    {{ certificado.presenca.inscricao.estudante.username }}
+                                {% endif %}
                             </strong>
-                        </p>
 
-                        <p>
-                            <small>EMITIDO EM</small>
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                CARGA HORÁRIA
+                            </small>
 
                             <strong>
-                                {{ certificado.data_emissao|date:"d/m/Y" }}
+                                {{ certificado.presenca.inscricao.evento.carga_horaria }}h
                             </strong>
-                        </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                DATA DO EVENTO
+                            </small>
+
+                            <strong>
+                                {{ certificado.presenca.inscricao.evento.data_inicio|date:"d/m/Y" }}
+                            </strong>
+
+                        </div>
 
                     </div>
 
+
+                    <!-- CÓDIGO DE VALIDAÇÃO -->
 
                     <div class="certificate-code">
 
@@ -82,106 +124,225 @@ Meus Certificados | AcadEvents
                             CÓDIGO DE VALIDAÇÃO
                         </small>
 
-                        <span>
+                        <code>
                             {{ certificado.codigo_validacao }}
-                        </span>
+                        </code>
 
                     </div>
+
+
+                    <!-- BLOCKCHAIN / SOLANA -->
+
                     <div class="blockchain-certificate">
 
-    <div class="blockchain-title">
-        <span>⛓</span>
+                        <div class="blockchain-title">
 
-        <div>
-            <small>BLOCKCHAIN</small>
-            <strong>Solana Devnet</strong>
-        </div>
-    </div>
+                            <span>
+                                ⛓
+                            </span>
 
+                            <div>
 
-    <div class="blockchain-data">
+                                <small>
+                                    BLOCKCHAIN
+                                </small>
 
-        <div>
-            <small>HASH SHA-256</small>
+                                <strong>
+                                    Solana Devnet
+                                </strong>
 
-            <code title="{{ certificado.hash_certificado }}">
-                {{ certificado.hash_certificado|slice:":12" }}...{{ certificado.hash_certificado|slice:"-12:" }}
-            </code>
-        </div>
+                            </div>
 
-
-        <div>
-            <small>STATUS</small>
-
-            {% if certificado.registrado_solana %}
-
-                <span class="blockchain-registered">
-                    ✓ Registrado na Solana
-                </span>
-
-            {% else %}
-
-                <span class="blockchain-pending">
-                    ● Aguardando registro
-                </span>
-
-            {% endif %}
-        </div>
-
-    </div>
-
-    {% if not certificado.registrado_solana %}
-
-    {% if user.carteira_solana_verificada %}
-
-        <button
-            type="button"
-            class="register-solana-button"
-            data-solana-url="{% url 'certificados:dados_registro_solana' certificado.id %}"
-            data-confirm-url="{% url 'certificados:confirmar_registro_solana' certificado.id %}"
->
-        Registrar na Solana
-
-        </button>
-
-    {% else %}
-
-        <div class="solana-requirement">
-            🔒 Conecte e verifique sua carteira para registrar este certificado.
-        </div>
-
-    {% endif %}
-
-{% endif %}
+                        </div>
 
 
-    {% if certificado.registrado_solana and certificado.solana_explorer_url %}
+                        <div class="blockchain-data">
 
-        <a
-            href="{{ certificado.solana_explorer_url }}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="solana-explorer-button"
-        >
-            Ver na Solana Explorer ↗
-        </a>
+                            <!-- HASH -->
 
-    {% endif %}
+                            <div>
 
-</div>
+                                <small>
+                                    HASH SHA-256
+                                </small>
 
-                    <a
-                        href="{% url 'certificados:baixar' certificado.id %}"
-                        class="certificate-button"
-                    >
-                        Baixar certificado
-                    </a>
+                                {% if certificado.hash_certificado %}
+
+                                    <code
+                                        title="{{ certificado.hash_certificado }}"
+                                    >
+                                        {{ certificado.hash_certificado|slice:":12" }}...{{ certificado.hash_certificado|slice:"-12:" }}
+                                    </code>
+
+                                {% else %}
+
+                                    <span class="blockchain-pending">
+                                        Hash ainda não gerado
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- REDE -->
+
+                            <div>
+
+                                <small>
+                                    REDE
+                                </small>
+
+                                <strong>
+                                    Solana {{ certificado.rede_solana|title }}
+                                </strong>
+
+                            </div>
+
+
+                            <!-- STATUS -->
+
+                            <div>
+
+                                <small>
+                                    STATUS
+                                </small>
+
+                                {% if certificado.registrado_solana %}
+
+                                    <span class="blockchain-registered">
+                                        ✓ Registrado na Solana
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="blockchain-pending">
+                                        ● Aguardando registro
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- DATA DO REGISTRO -->
+
+                            {% if certificado.data_registro_solana %}
+
+                                <div>
+
+                                    <small>
+                                        REGISTRADO EM
+                                    </small>
+
+                                    <strong>
+                                        {{ certificado.data_registro_solana|date:"d/m/Y H:i" }}
+                                    </strong>
+
+                                </div>
+
+                            {% endif %}
+
+
+                            <!-- ASSINATURA -->
+
+                            {% if certificado.assinatura_solana %}
+
+                                <div>
+
+                                    <small>
+                                        TRANSAÇÃO
+                                    </small>
+
+                                    <code
+                                        title="{{ certificado.assinatura_solana }}"
+                                    >
+                                        {{ certificado.assinatura_solana|slice:":12" }}...{{ certificado.assinatura_solana|slice:"-12:" }}
+                                    </code>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- REGISTRAR NA SOLANA -->
+
+                        {% if not certificado.registrado_solana %}
+
+                            {% if user.carteira_solana_verificada %}
+
+                                <button
+                                    type="button"
+                                    class="register-solana-button"
+                                    data-solana-url="{% url 'certificados:dados_registro_solana' certificado.id %}"
+                                    data-confirm-url="{% url 'certificados:confirmar_registro_solana' certificado.id %}"
+                                >
+                                    Registrar na Solana
+                                </button>
+
+                            {% else %}
+
+                                <div class="solana-requirement">
+                                    🔒 Conecte e verifique sua carteira
+                                    Solana para registrar este certificado.
+                                </div>
+
+                            {% endif %}
+
+                        {% endif %}
+
+
+                        <!-- LINK SOLANA EXPLORER -->
+
+                        {% if certificado.registrado_solana and certificado.solana_explorer_url %}
+
+                            <a
+                                href="{{ certificado.solana_explorer_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="solana-explorer-button"
+                            >
+                                Ver na Solana Explorer ↗
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- AÇÕES -->
+
+                    <div class="student-actions">
+
+                        <a
+                            href="{% url 'certificados:baixar' certificado.id %}"
+                            class="organizer-primary"
+                        >
+                            Baixar certificado
+                        </a>
+
+
+                        <a
+                            href="{% url 'certificados:validar' certificado.codigo_validacao %}"
+                            class="organizer-secondary"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Validar certificado
+                        </a>
+
+                    </div>
 
                 </div>
 
             </article>
 
+
         {% empty %}
+
+            <!-- SEM CERTIFICADOS -->
 
             <div class="empty-student">
 
@@ -194,9 +355,13 @@ Meus Certificados | AcadEvents
                 </h2>
 
                 <p>
-                    Após participar de um evento e ter sua
-                    presença confirmada, o certificado aparecerá aqui.
+                    Depois que sua presença em um evento
+                    for confirmada, seu certificado aparecerá aqui.
                 </p>
+
+                <a href="{% url 'home' %}">
+                    Explorar eventos
+                </a>
 
             </div>
 
@@ -205,6 +370,9 @@ Meus Certificados | AcadEvents
     </div>
 
 </section>
+
+
+<!-- JAVASCRIPT SOLANA -->
 
 <script
     type="module"

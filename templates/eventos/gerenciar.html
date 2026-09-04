@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Gerenciar Evento | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="organizer-page">
+
+    <!-- CABEÇALHO -->
+
+    <div class="organizer-header">
+
+        <div>
+
+            <span class="section-tag">
+                GERENCIAMENTO
+            </span>
+
+            <h1>
+                {{ evento.titulo }}
+            </h1>
+
+            <p>
+                Gerencie participantes, presenças
+                e informações deste evento.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'eventos:painel_organizador' %}"
+            class="organizer-secondary"
+        >
+            ← Voltar ao painel
+        </a>
+
+    </div>
+
+
+    <!-- RESUMO -->
+
+    <div class="organizer-dashboard">
+
+        <div class="organizer-dashboard-card">
+
+            <span>
+                INSCRITOS
+            </span>
+
+            <strong>
+                {{ total_inscritos }}
+            </strong>
+
+            <small>
+                participantes confirmados
+            </small>
+
+        </div>
+
+
+        <div class="organizer-dashboard-card">
+
+            <span>
+                PRESENTES
+            </span>
+
+            <strong>
+                {{ total_presentes }}
+            </strong>
+
+            <small>
+                presenças confirmadas
+            </small>
+
+        </div>
+
+
+        <div class="organizer-dashboard-card">
+
+            <span>
+                AUSENTES
+            </span>
+
+            <strong>
+                {{ total_ausentes }}
+            </strong>
+
+            <small>
+                sem presença
+            </small>
+
+        </div>
+
+
+        <div class="organizer-dashboard-card">
+
+            <span>
+                VAGAS DISPONÍVEIS
+            </span>
+
+            <strong>
+                {{ vagas_disponiveis }}
+            </strong>
+
+            <small>
+                de {{ evento.limite_vagas }} vagas
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- AÇÕES -->
+
+    <div class="event-management-actions">
+
+        <a
+            href="{% url 'eventos:editar' evento.id %}"
+            class="organizer-secondary"
+        >
+            Editar evento
+        </a>
+
+
+        {% if evento.permite_qr_code and evento.permite_presenca %}
+
+            <a
+                href="{% url 'presencas:leitor' evento.id %}"
+                class="qr-reader-button"
+            >
+                <span>
+                    ▣
+                </span>
+
+                Ler QR Code
+            </a>
+
+        {% endif %}
+
+
+        {% if evento.permite_relatorios %}
+
+            <a
+                href="{% url 'eventos:relatorio' evento.id %}"
+                class="organizer-primary"
+            >
+                Ver relatório
+            </a>
+
+        {% else %}
+
+            <span class="plan-resource-locked">
+                🔒 Relatórios não disponíveis neste plano
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PLANO -->
+
+    {% if evento.plano %}
+
+        <div class="event-plan-info">
+
+            <div>
+
+                <small>
+                    PLANO DO EVENTO
+                </small>
+
+                <strong>
+                    {{ evento.plano.nome }}
+                </strong>
+
+            </div>
+
+
+            {% if evento.plano.tipo == 'free' %}
+
+                <span class="event-plan-free">
+                    Somente divulgação
+                </span>
+
+            {% else %}
+
+                <span class="event-plan-active">
+                    Recursos de gestão ativos
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- PARTICIPANTES -->
+
+    <div class="organizer-category-header">
+
+        <div>
+
+            <span class="section-tag">
+                PARTICIPANTES
+            </span>
+
+            <h2>
+                Lista de inscritos
+            </h2>
+
+            <p>
+                Acompanhe a situação dos participantes
+                deste evento.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if evento.permite_inscricoes %}
+
+        {% if inscricoes %}
+
+            <div class="participants-table-wrapper">
+
+                <table class="participants-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PARTICIPANTE
+                            </th>
+
+                            <th>
+                                E-MAIL
+                            </th>
+
+                            <th>
+                                INSTITUIÇÃO
+                            </th>
+
+                            <th>
+                                CURSO
+                            </th>
+
+                            <th>
+                                PRESENÇA
+                            </th>
+
+                            <th>
+                                AÇÃO
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for inscricao in inscricoes %}
+
+                            <tr>
+
+                                <!-- PARTICIPANTE -->
+
+                                <td>
+
+                                    <div class="participant-name">
+
+                                        <div class="participant-avatar">
+
+                                            {{ inscricao.estudante.first_name|default:inscricao.estudante.username|slice:":1"|upper }}
+
+                                        </div>
+
+
+                                        <div>
+
+                                            <strong>
+
+                                                {% if inscricao.estudante.get_full_name %}
+
+                                                    {{ inscricao.estudante.get_full_name }}
+
+                                                {% else %}
+
+                                                    {{ inscricao.estudante.username }}
+
+                                                {% endif %}
+
+                                            </strong>
+
+
+                                            <small>
+                                                @{{ inscricao.estudante.username }}
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- EMAIL -->
+
+                                <td>
+                                    {{ inscricao.estudante.email|default:"—" }}
+                                </td>
+
+
+                                <!-- INSTITUIÇÃO -->
+
+                                <td>
+                                    {{ inscricao.estudante.instituicao|default:"—" }}
+                                </td>
+
+
+                                <!-- CURSO -->
+
+                                <td>
+                                    {{ inscricao.estudante.curso|default:"—" }}
+                                </td>
+
+
+                                <!-- PRESENÇA -->
+
+                                <td>
+
+                                    {% if inscricao.presenca.confirmada %}
+
+                                        <span class="presence-confirmed">
+                                            ✓ Presente
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="presence-absent">
+                                            Aguardando
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- AÇÃO -->
+
+                                <td>
+
+                                    {% if evento.permite_presenca %}
+
+                                        {% if inscricao.presenca.confirmada %}
+
+                                            <span class="presence-complete">
+                                                Confirmada
+                                            </span>
+
+                                        {% else %}
+
+                                            <form
+                                                method="POST"
+                                                action="{% url 'presencas:confirmar' inscricao.id %}"
+                                            >
+
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="attendance-button"
+                                                >
+                                                    Confirmar presença
+                                                </button>
+
+                                            </form>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span class="plan-resource-locked">
+                                            🔒 Indisponível
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="empty-student">
+
+                <div class="empty-icon">
+                    AE
+                </div>
+
+                <h2>
+                    Nenhum participante
+                </h2>
+
+                <p>
+                    Ainda não existem inscrições confirmadas
+                    para este evento.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+    {% else %}
+
+        <!-- PLANO FREE -->
+
+        <div class="free-plan-management">
+
+            <span class="free-plan-icon">
+                🔒
+            </span>
+
+
+            <div>
+
+                <span class="section-tag">
+                    PLANO FREE
+                </span>
+
+                <h2>
+                    Gestão de participantes indisponível
+                </h2>
+
+                <p>
+                    Este evento está utilizando o plano Free,
+                    destinado exclusivamente à divulgação.
+                </p>
+
+                <p>
+                    Para utilizar inscrições, QR Code,
+                    controle de presença, certificados
+                    e relatórios, escolha um dos planos
+                    completos do AcadEvents.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'planos:escolher' %}"
+                class="organizer-primary"
+            >
+                Conhecer planos
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

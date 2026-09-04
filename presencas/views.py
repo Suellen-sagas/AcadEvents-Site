@@ -1,46 +1,100 @@
-from io import BytesIO
+import io
 
 import qrcode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
 from django.urls import reverse
 
+from eventos.models import Evento
 from inscricoes.models import Inscricao
+from usuarios.decorators import somente_estudante
 
 from .models import Presenca
 
 
+# =========================================================
+# AUXILIAR
+# =========================================================
+
+def pode_gerenciar_evento(
+    usuario,
+    evento
+):
+
+    return (
+        usuario.is_superuser
+        or usuario.tipo_usuario == 'administrador'
+        or evento.organizador == usuario
+    )
+
+
+# =========================================================
+# QR CODE DO ESTUDANTE
+# =========================================================
+
 @login_required
-def qr_presenca(request, inscricao_id):
+@somente_estudante
+def qr_presenca(
+    request,
+    inscricao_id
+):
 
     inscricao = get_object_or_404(
-        Inscricao,
+        Inscricao.objects.select_related(
+            'evento'
+        ),
         id=inscricao_id,
         estudante=request.user,
         status='confirmada'
     )
 
-    presenca, created = Presenca.objects.get_or_create(
-        inscricao=inscricao
+    evento = inscricao.evento
+
+    if not evento.permite_qr_code:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não '
+                'possui QR Code.'
+            )
+        )
+
+        return redirect(
+            'inscricoes:meus_eventos'
+        )
+
+    presenca, _ = (
+        Presenca.objects.get_or_create(
+            inscricao=inscricao
+        )
     )
 
-    url_validacao = reverse(
-        'presencas:validar',
-        args=[presenca.codigo_qr]
+    url_validacao = (
+        request.build_absolute_uri(
+            reverse(
+                'presencas:validar',
+                args=[
+                    presenca.codigo_qr
+                ]
+            )
+        )
     )
 
-    url_completa = request.build_absolute_uri(
+    imagem = qrcode.make(
         url_validacao
     )
 
-    qr = qrcode.make(url_completa)
+    buffer = io.BytesIO()
 
-    buffer = BytesIO()
-
-    qr.save(
+    imagem.save(
         buffer,
         format='PNG'
     )
@@ -53,37 +107,46 @@ def qr_presenca(request, inscricao_id):
     )
 
 
-@login_required
-def validar_presenca(request, codigo_qr):
+# =========================================================
+# LEITOR DE QR CODE
+# =========================================================
 
-    presenca = get_object_or_404(
-        Presenca.objects.select_related(
-            'inscricao',
-            'inscricao__estudante',
-            'inscricao__evento',
-            'inscricao__evento__organizador'
-        ),
-        codigo_qr=codigo_qr
+@login_required
+def leitor_qr(
+    request,
+    evento_id
+):
+
+    evento = get_object_or_404(
+        Evento,
+        id=evento_id
     )
 
-    inscricao = presenca.inscricao
-    evento = inscricao.evento
-
-    if (
-        request.user.tipo_usuario != 'administrador'
-        and evento.organizador != request.user
+    if not pode_gerenciar_evento(
+        request.user,
+        evento
     ):
+
         messages.error(
             request,
-            'Você não possui permissão para validar a presença deste evento.'
+            (
+                'Você não possui permissão '
+                'para validar presenças deste evento.'
+            )
         )
 
-        return redirect('home')
+        return redirect(
+            'eventos:painel_organizador'
+        )
 
-    if inscricao.status != 'confirmada':
+    if not evento.permite_qr_code:
+
         messages.error(
             request,
-            'Esta inscrição não está ativa.'
+            (
+                'O plano deste evento não '
+                'possui leitura de QR Code.'
+            )
         )
 
         return redirect(
@@ -91,18 +154,135 @@ def validar_presenca(request, codigo_qr):
             evento_id=evento.id
         )
 
+    if not evento.permite_presenca:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não '
+                'possui controle de presença.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
+        )
+
+    return render(
+        request,
+        'presencas/leitor_qr.html',
+        {
+            'evento': evento
+        }
+    )
+
+
+# =========================================================
+# VALIDAR QR CODE
+# =========================================================
+
+@login_required
+def validar_presenca(
+    request,
+    codigo_qr
+):
+
+    presenca = get_object_or_404(
+        Presenca.objects.select_related(
+            'inscricao__evento',
+            'inscricao__estudante'
+        ),
+        codigo_qr=codigo_qr
+    )
+
+    inscricao = (
+        presenca.inscricao
+    )
+
+    evento = (
+        inscricao.evento
+    )
+
+    # =====================================================
+    # PERMISSÃO
+    # =====================================================
+
+    if not pode_gerenciar_evento(
+        request.user,
+        evento
+    ):
+
+        messages.error(
+            request,
+            (
+                'Você não possui permissão '
+                'para validar esta presença.'
+            )
+        )
+
+        return redirect(
+            'eventos:painel_organizador'
+        )
+
+    # =====================================================
+    # PLANO
+    # =====================================================
+
+    if not evento.permite_presenca:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não '
+                'possui controle de presença.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
+        )
+
+    # =====================================================
+    # INSCRIÇÃO CANCELADA / NÃO CONFIRMADA
+    # =====================================================
+
+    if inscricao.status != 'confirmada':
+
+        messages.error(
+            request,
+            (
+                'Esta inscrição não está '
+                'confirmada.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
+        )
+
+    # =====================================================
+    # CONFIRMAR
+    # =====================================================
+
     if request.method == 'POST':
 
         if presenca.confirmada:
 
-            messages.warning(
+            messages.info(
                 request,
-                'A presença deste participante já foi confirmada.'
+                (
+                    'A presença deste participante '
+                    'já estava confirmada.'
+                )
             )
 
         else:
 
             presenca.confirmada = True
+
             presenca.save()
 
             messages.success(
@@ -111,8 +291,8 @@ def validar_presenca(request, codigo_qr):
             )
 
         return redirect(
-            'presencas:validar',
-            codigo_qr=presenca.codigo_qr
+            'presencas:leitor',
+            evento_id=evento.id
         )
 
     return render(
@@ -126,8 +306,15 @@ def validar_presenca(request, codigo_qr):
     )
 
 
+# =========================================================
+# CONFIRMAR PRESENÇA MANUALMENTE
+# =========================================================
+
 @login_required
-def confirmar_presenca_manual(request, inscricao_id):
+def confirmar_presenca_manual(
+    request,
+    inscricao_id
+):
 
     inscricao = get_object_or_404(
         Inscricao.objects.select_related(
@@ -138,18 +325,41 @@ def confirmar_presenca_manual(request, inscricao_id):
         status='confirmada'
     )
 
-    evento = inscricao.evento
+    evento = (
+        inscricao.evento
+    )
 
-    if (
-        request.user.tipo_usuario != 'administrador'
-        and evento.organizador != request.user
+    if not pode_gerenciar_evento(
+        request.user,
+        evento
     ):
+
         messages.error(
             request,
-            'Você não possui permissão para confirmar esta presença.'
+            (
+                'Você não possui permissão '
+                'para confirmar esta presença.'
+            )
         )
 
-        return redirect('home')
+        return redirect(
+            'eventos:painel_organizador'
+        )
+
+    if not evento.permite_presenca:
+
+        messages.error(
+            request,
+            (
+                'O plano deste evento não '
+                'possui controle de presença.'
+            )
+        )
+
+        return redirect(
+            'eventos:gerenciar',
+            evento_id=evento.id
+        )
 
     if request.method != 'POST':
 
@@ -158,25 +368,35 @@ def confirmar_presenca_manual(request, inscricao_id):
             evento_id=evento.id
         )
 
-    presenca, created = Presenca.objects.get_or_create(
-        inscricao=inscricao
+    presenca, _ = (
+        Presenca.objects.get_or_create(
+            inscricao=inscricao
+        )
     )
 
     if presenca.confirmada:
 
-        messages.warning(
+        messages.info(
             request,
-            'A presença deste participante já está confirmada.'
+            (
+                'A presença deste participante '
+                'já estava confirmada.'
+            )
         )
 
     else:
 
         presenca.confirmada = True
+
         presenca.save()
 
         messages.success(
             request,
-            'Presença confirmada com sucesso!'
+            (
+                'Presença de '
+                f'{inscricao.estudante} '
+                'confirmada com sucesso!'
+            )
         )
 
     return redirect(

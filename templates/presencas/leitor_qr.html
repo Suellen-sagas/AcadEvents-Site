@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Ler QR Code | {{ evento.titulo }} | AcadEvents
+{% endblock %}
+
+{% block content %}
+
+<section class="qr-scanner-page">
+
+    <div class="qr-scanner-header">
+
+        <div>
+
+            <span class="section-tag">
+                CHECK-IN
+            </span>
+
+            <h1>
+                Ler QR Code
+            </h1>
+
+            <p>
+                Escaneie o QR Code apresentado pelo participante
+                para localizar sua inscrição e confirmar a presença.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'eventos:gerenciar' evento.id %}"
+            class="organizer-secondary"
+        >
+            ← Voltar ao evento
+        </a>
+
+    </div>
+
+
+    <!-- EVENTO -->
+
+    <div class="qr-event-card">
+
+        <div>
+
+            <small>
+                EVENTO
+            </small>
+
+            <strong>
+                {{ evento.titulo }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                DATA
+            </small>
+
+            <strong>
+                {{ evento.data_inicio|date:"d/m/Y" }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                HORÁRIO
+            </small>
+
+            <strong>
+                {{ evento.data_inicio|date:"H:i" }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                MODALIDADE
+            </small>
+
+            <strong>
+                {{ evento.get_modalidade_display }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- LEITOR -->
+
+    <div class="qr-scanner-layout">
+
+        <div class="qr-camera-card">
+
+            <div class="qr-camera-header">
+
+                <div class="qr-camera-live">
+                    <span></span>
+                    CÂMERA
+                </div>
+
+                <small>
+                    QR CHECK-IN
+                </small>
+
+            </div>
+
+
+            <div
+                id="qr-reader"
+                class="qr-reader"
+            ></div>
+
+
+            <div
+                id="qr-reader-status"
+                class="qr-reader-status"
+            >
+                Preparando leitor...
+            </div>
+
+        </div>
+
+
+        <!-- INSTRUÇÕES -->
+
+        <aside class="qr-instructions">
+
+            <span class="section-tag">
+                COMO FUNCIONA
+            </span>
+
+            <h2>
+                Check-in rápido
+            </h2>
+
+
+            <div class="qr-step">
+
+                <span>
+                    01
+                </span>
+
+                <div>
+
+                    <strong>
+                        Peça o QR Code
+                    </strong>
+
+                    <p>
+                        O participante acessa Meus Eventos
+                        e apresenta seu QR Code.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="qr-step">
+
+                <span>
+                    02
+                </span>
+
+                <div>
+
+                    <strong>
+                        Escaneie
+                    </strong>
+
+                    <p>
+                        Posicione o código dentro da área
+                        indicada pela câmera.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="qr-step">
+
+                <span>
+                    03
+                </span>
+
+                <div>
+
+                    <strong>
+                        Confira o participante
+                    </strong>
+
+                    <p>
+                        O AcadEvents mostrará os dados
+                        da inscrição antes da confirmação.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="qr-step">
+
+                <span>
+                    04
+                </span>
+
+                <div>
+
+                    <strong>
+                        Confirme a presença
+                    </strong>
+
+                    <p>
+                        Após a confirmação, o participante
+                        poderá receber seu certificado.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="qr-security-note">
+
+                <strong>
+                    🔒 Validação AcadEvents
+                </strong>
+
+                <p>
+                    QR Codes inválidos, inscrições canceladas
+                    e participantes de outros eventos não podem
+                    registrar presença.
+                </p>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+
+<script
+    type="module"
+    src="{% static 'js/leitor_qr.bundle.js' %}"
+></script>
+
+{% endblock %}

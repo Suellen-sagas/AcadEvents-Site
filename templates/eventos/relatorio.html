@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Relatório | {{ evento.titulo }} | AcadEvents
+{% endblock %}
+
+
+{% block content %}
+
+<section class="report-page">
+
+    <!-- CABEÇALHO -->
+
+    <div class="report-header">
+
+        <div>
+
+            <span class="section-tag">
+                RELATÓRIO DO EVENTO
+            </span>
+
+            <h1>
+                {{ evento.titulo }}
+            </h1>
+
+            <p>
+                Acompanhe os resultados, participantes,
+                presenças e certificados deste evento.
+            </p>
+
+        </div>
+
+
+        <div class="report-header-actions">
+
+            <a
+                href="{% url 'eventos:gerenciar' evento.id %}"
+                class="organizer-secondary"
+            >
+                ← Voltar
+            </a>
+
+            <a
+                href="{% url 'eventos:exportar_relatorio' evento.id %}"
+                class="organizer-primary"
+            >
+                Exportar CSV
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- INFORMAÇÕES DO EVENTO -->
+
+    <div class="report-event-info">
+
+        <div>
+
+            <small>
+                DATA
+            </small>
+
+            <strong>
+                {{ evento.data_inicio|date:"d/m/Y" }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                HORÁRIO
+            </small>
+
+            <strong>
+                {{ evento.data_inicio|date:"H:i" }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                MODALIDADE
+            </small>
+
+            <strong>
+                {{ evento.get_modalidade_display }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <small>
+                CAPACIDADE
+            </small>
+
+            <strong>
+                {{ evento.limite_vagas }}
+            </strong>
+
+        </div>
+
+
+        {% if evento.plano %}
+
+            <div>
+
+                <small>
+                    PLANO
+                </small>
+
+                <strong>
+                    {{ evento.plano.nome }}
+                </strong>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- RESUMO -->
+
+    <div class="report-dashboard">
+
+        <article class="report-stat-card">
+
+            <span>
+                INSCRITOS
+            </span>
+
+            <strong>
+                {{ total_inscritos }}
+            </strong>
+
+            <small>
+                participantes confirmados
+            </small>
+
+        </article>
+
+
+        <article class="report-stat-card">
+
+            <span>
+                PRESENTES
+            </span>
+
+            <strong>
+                {{ total_presentes }}
+            </strong>
+
+            <small>
+                presenças confirmadas
+            </small>
+
+        </article>
+
+
+        <article class="report-stat-card">
+
+            <span>
+                AUSENTES
+            </span>
+
+            <strong>
+                {{ total_ausentes }}
+            </strong>
+
+            <small>
+                participantes ausentes
+            </small>
+
+        </article>
+
+
+        <article class="report-stat-card">
+
+            <span>
+                CERTIFICADOS
+            </span>
+
+            <strong>
+                {{ total_certificados }}
+            </strong>
+
+            <small>
+                certificados emitidos
+            </small>
+
+        </article>
+
+
+        <article class="report-stat-card report-stat-highlight">
+
+            <span>
+                TAXA DE PRESENÇA
+            </span>
+
+            <strong>
+                {{ taxa_presenca }}%
+            </strong>
+
+            <small>
+                participação geral
+            </small>
+
+        </article>
+
+    </div>
+
+
+    <!-- TAXA DE PRESENÇA -->
+
+    <div class="report-performance-card">
+
+        <div class="report-performance-header">
+
+            <div>
+
+                <span class="section-tag">
+                    DESEMPENHO
+                </span>
+
+                <h2>
+                    Participação no evento
+                </h2>
+
+            </div>
+
+
+            <strong>
+                {{ taxa_presenca }}%
+            </strong>
+
+        </div>
+
+
+        <progress
+            class="report-progress-bar"
+            value="{{ taxa_presenca }}"
+            max="100"
+        >
+            {{ taxa_presenca }}%
+        </progress>
+
+
+        <div class="report-progress-labels">
+
+            <span>
+                {{ total_presentes }} presentes
+            </span>
+
+            <span>
+                {{ total_inscritos }} inscritos
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- PARTICIPANTES -->
+
+    <div class="report-section-header">
+
+        <div>
+
+            <span class="section-tag">
+                PARTICIPANTES
+            </span>
+
+            <h2>
+                Lista de inscritos
+            </h2>
+
+            <p>
+                Consulte a situação individual de cada participante.
+            </p>
+
+        </div>
+
+
+        <span class="report-participant-count">
+            {{ total_inscritos }} participantes
+        </span>
+
+    </div>
+
+
+    {% if inscricoes %}
+
+        <div class="report-table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            PARTICIPANTE
+                        </th>
+
+                        <th>
+                            INSTITUIÇÃO
+                        </th>
+
+                        <th>
+                            CURSO
+                        </th>
+
+                        <th>
+                            PRESENÇA
+                        </th>
+
+                        <th>
+                            CERTIFICADO
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for inscricao in inscricoes %}
+
+                        <tr>
+
+                            <!-- PARTICIPANTE -->
+
+                            <td>
+
+                                <div class="report-participant">
+
+                                    <div class="report-avatar">
+
+                                        {{ inscricao.estudante.first_name|default:inscricao.estudante.username|slice:":1"|upper }}
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <strong>
+
+                                            {% if inscricao.estudante.get_full_name %}
+
+                                                {{ inscricao.estudante.get_full_name }}
+
+                                            {% else %}
+
+                                                {{ inscricao.estudante.username }}
+
+                                            {% endif %}
+
+                                        </strong>
+
+                                        <small>
+                                            {{ inscricao.estudante.email|default:"E-mail não informado" }}
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- INSTITUIÇÃO -->
+
+                            <td>
+
+                                {{ inscricao.estudante.instituicao|default:"—" }}
+
+                            </td>
+
+
+                            <!-- CURSO -->
+
+                            <td>
+
+                                {{ inscricao.estudante.curso|default:"—" }}
+
+                            </td>
+
+
+                            <!-- PRESENÇA -->
+
+                            <td>
+
+                                {% if inscricao.presenca.confirmada %}
+
+                                    <span class="report-status-success">
+                                        ✓ Presente
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="report-status-danger">
+                                        Ausente
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- CERTIFICADO -->
+
+                            <td>
+
+                                {% if inscricao.presenca.confirmada and inscricao.presenca.certificado %}
+
+                                    <span class="report-status-certificate">
+                                        ✓ Emitido
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="report-status-neutral">
+                                        Não emitido
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% else %}
+
+        <div class="empty-student">
+
+            <div class="empty-icon">
+                AE
+            </div>
+
+            <h2>
+                Nenhum participante
+            </h2>
+
+            <p>
+                Este evento ainda não possui inscrições confirmadas.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- RODAPÉ DO RELATÓRIO -->
+
+    <div class="report-footer-card">
+
+        <div>
+
+            <small>
+                ACADEVENTS
+            </small>
+
+            <strong>
+                Relatório atualizado automaticamente
+            </strong>
+
+            <p>
+                Os dados são calculados com base nas inscrições
+                e presenças registradas na plataforma.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'eventos:exportar_relatorio' evento.id %}"
+            class="organizer-primary"
+        >
+            Baixar relatório CSV
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

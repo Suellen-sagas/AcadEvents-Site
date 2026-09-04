@@ -55,20 +55,59 @@ class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
 
-        fields = (
+        fields = [
             'first_name',
             'last_name',
             'email',
             'instituicao',
             'curso',
             'matricula',
-        )
+            'cpf',
+        ]
 
-        labels = {
-            'first_name': 'Nome',
-            'last_name': 'Sobrenome',
-            'email': 'E-mail',
-            'instituicao': 'Instituição',
-            'curso': 'Curso',
-            'matricula': 'Matrícula',
+        widgets = {
+
+            'first_name': forms.TextInput(
+                attrs={
+                    'placeholder': 'Seu nome'
+                }
+            ),
+
+            'last_name': forms.TextInput(
+                attrs={
+                    'placeholder': 'Seu sobrenome'
+                }
+            ),
+
+            'email': forms.EmailInput(
+                attrs={
+                    'placeholder': 'seuemail@email.com'
+                }
+            ),
+
+            'instituicao': forms.TextInput(
+                attrs={
+                    'placeholder': 'Sua instituição de ensino'
+                }
+            ),
+
+            'curso': forms.TextInput(
+                attrs={
+                    'placeholder': 'Seu curso'
+                }
+            ),
+
+            'matricula': forms.TextInput(
+                attrs={
+                    'placeholder': 'Sua matrícula'
+                }
+            ),
+
+            'cpf': forms.TextInput(
+                attrs={
+                    'placeholder': '000.000.000-00',
+                    'maxlength': '14',
+                    'autocomplete': 'off',
+                }
+            ),
         }

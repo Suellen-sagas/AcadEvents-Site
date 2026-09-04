@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'certificados',
     'usuarios',
     'notificacoes.apps.NotificacoesConfig',
+    'planos'
 
 ]
 

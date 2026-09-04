@@ -1,14 +1,21 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="pt-br">
+
+<html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="AcadEvents - Eventos de tecnologia, inscrições, presença e certificados."
     >
 
     <title>
@@ -17,97 +24,248 @@
         {% endblock %}
     </title>
 
+    <!-- CSS PRINCIPAL -->
+
     <link
         rel="stylesheet"
         href="{% static 'css/style.css' %}"
     >
+
 </head>
+
 
 <body>
 
-    <header class="header">
 
-        <div class="container navbar">
+    <!-- =================================================
+         NAVBAR
+    ================================================== -->
 
-            <a
-                href="{% url 'home' %}"
-                class="logo"
-            >
-                AcadEvents
-            </a>
+    <header class="main-header">
+
+        <nav class="navbar">
+
+            <!-- LOGO -->
+
+            <div class="navbar-brand">
+
+                <a
+                    href="{% url 'home' %}"
+                    class="brand-link"
+                >
+
+                    <span class="brand-icon">
+                        AE
+                    </span>
+
+                    <span class="brand-name">
+                        AcadEvents
+                    </span>
+
+                </a>
+
+            </div>
 
 
-            <nav class="nav-links">
+            <!-- LINKS PRINCIPAIS -->
 
-                <a href="{% url 'home' %}">
+            <div class="navbar-links">
+
+                <a
+                    href="{% url 'home' %}"
+                    class="nav-link"
+                >
                     Eventos
                 </a>
 
 
+                <a
+                    href="{% url 'planos:escolher' %}"
+                    class="nav-link"
+                >
+                    Planos
+                </a>
+
+
+                <!-- =====================================
+                     USUÁRIO LOGADO
+                ====================================== -->
+
                 {% if user.is_authenticated %}
 
 
-                    {% if user.tipo_usuario == 'estudante' %}
+                    <!-- ESTUDANTE -->
 
-                        <a href="{% url 'inscricoes:meus_eventos' %}">
+                    {% if user.tipo_usuario == 'estudante' and not user.is_superuser %}
+
+                        <a
+                            href="{% url 'inscricoes:meus_eventos' %}"
+                            class="nav-link"
+                        >
                             Meus Eventos
                         </a>
 
-                        <a href="{% url 'eventos:favoritos' %}">
+
+                        <a
+                            href="{% url 'eventos:favoritos' %}"
+                            class="nav-link"
+                        >
                             Favoritos
                         </a>
 
-                        <a href="{% url 'certificados:meus_certificados' %}">
+
+                        <a
+                            href="{% url 'certificados:meus_certificados' %}"
+                            class="nav-link"
+                        >
                             Certificados
                         </a>
 
                     {% endif %}
 
 
-                    {% if user.tipo_usuario == 'organizador' or user.tipo_usuario == 'administrador' %}
+                    <!-- ORGANIZADOR -->
 
-                        <a href="{% url 'eventos:painel_organizador' %}">
+                    {% if user.tipo_usuario == 'organizador' %}
+
+                        <a
+                            href="{% url 'eventos:painel_organizador' %}"
+                            class="nav-link"
+                        >
                             Painel
                         </a>
 
                     {% endif %}
 
 
-                    <a href="{% url 'perfil' %}">
-                        Meu Perfil
+                    <!-- ADMINISTRADOR / SUPERUSER -->
+
+                    {% if user.tipo_usuario == 'administrador' or user.is_superuser %}
+
+                        <a
+                            href="{% url 'eventos:painel_organizador' %}"
+                            class="nav-link"
+                        >
+                            Eventos
+                        </a>
+
+
+                        <a
+                            href="/admin/"
+                            class="nav-link"
+                        >
+                            Administração
+                        </a>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- AÇÕES DA DIREITA -->
+
+            <div class="navbar-actions">
+
+
+                {% if user.is_authenticated %}
+
+                    <!-- NOTIFICAÇÕES -->
+
+                    <a
+                        href="/notificacoes/"
+                        class="notification-link"
+                        title="Notificações"
+                    >
+
+                        <span class="notification-icon">
+                            🔔
+                        </span>
+
+
+                        {% if notificacoes_nao_lidas %}
+
+                            <span class="notification-count">
+                                {{ notificacoes_nao_lidas }}
+                            </span>
+
+                        {% endif %}
+
                     </a>
 
-    <a
-        href="{% url 'notificacoes:lista' %}"
-        class="notification-nav-link"
->
-            <span>🔔</span>
 
-        <span>
-            Notificações
-        </span>
+                    <!-- PERFIL -->
 
-    {% if notificacoes_nao_lidas > 0 %}
+                    <a
+                        href="{% url 'perfil' %}"
+                        class="profile-nav-link"
+                    >
 
-        <span class="notification-nav-count">
-            {{ notificacoes_nao_lidas }}
-        </span>
+                        <span class="profile-nav-avatar">
 
-    {% endif %}
-</a>
+                            {% if user.first_name %}
 
+                                {{ user.first_name|slice:":1"|upper }}
+
+                            {% else %}
+
+                                {{ user.username|slice:":1"|upper }}
+
+                            {% endif %}
+
+                        </span>
+
+
+                        <span class="profile-nav-info">
+
+                            <strong>
+
+                                {% if user.first_name %}
+
+                                    {{ user.first_name }}
+
+                                {% else %}
+
+                                    {{ user.username }}
+
+                                {% endif %}
+
+                            </strong>
+
+
+                            <small>
+
+                                {% if user.is_superuser %}
+
+                                    Administrador
+
+                                {% else %}
+
+                                    {{ user.get_tipo_usuario_display }}
+
+                                {% endif %}
+
+                            </small>
+
+                        </span>
+
+                    </a>
+
+
+                    <!-- LOGOUT -->
 
                     <form
-                        action="{% url 'logout' %}"
                         method="POST"
-                        class="form-logout"
+                        action="{% url 'logout' %}"
+                        class="logout-form"
                     >
 
                         {% csrf_token %}
 
                         <button
                             type="submit"
-                            class="btn-logout"
+                            class="logout-button"
                         >
                             Sair
                         </button>
@@ -117,34 +275,56 @@
 
                 {% else %}
 
-                    <a href="{% url 'login' %}">
+                    <!-- VISITANTE -->
+
+                    <a
+                        href="{% url 'login' %}"
+                        class="nav-login-button"
+                    >
                         Entrar
                     </a>
 
+
                     <a
                         href="{% url 'cadastro' %}"
-                        class="btn-nav"
+                        class="nav-register-button"
                     >
                         Criar conta
                     </a>
 
                 {% endif %}
 
-            </nav>
 
-        </div>
+            </div>
+
+        </nav>
 
     </header>
 
 
+    <!-- =================================================
+         MENSAGENS DO DJANGO
+    ================================================== -->
+
     {% if messages %}
 
-        <div class="container messages">
+        <div class="messages-container">
 
             {% for message in messages %}
 
-                <div class="message {{ message.tags }}">
-                    {{ message }}
+                <div
+                    class="
+                        system-message
+                        {% if message.tags %}
+                            message-{{ message.tags }}
+                        {% endif %}
+                    "
+                >
+
+                    <span>
+                        {{ message }}
+                    </span>
+
                 </div>
 
             {% endfor %}
@@ -154,33 +334,162 @@
     {% endif %}
 
 
-    <main class="main">
+    <!-- =================================================
+         CONTEÚDO DAS PÁGINAS
+    ================================================== -->
 
-        <div class="container">
+    <main class="main-content">
 
-            {% block content %}
-            {% endblock %}
+        {% block content %}
 
-        </div>
+        {% endblock %}
 
     </main>
 
 
-    <footer class="footer">
+    <!-- =================================================
+         RODAPÉ
+    ================================================== -->
 
-        <div class="container">
+    <footer class="main-footer">
 
-            <p>
-                AcadEvents © 2026
-            </p>
+        <div class="footer-container">
 
-            <p>
-                Eventos acadêmicos em um só lugar.
-            </p>
+            <div class="footer-brand">
+
+                <div class="footer-logo">
+
+                    <span class="brand-icon">
+                        AE
+                    </span>
+
+                    <strong>
+                        AcadEvents
+                    </strong>
+
+                </div>
+
+
+                <p>
+                    Conectando pessoas às melhores
+                    experiências em Tecnologia da Informação.
+                </p>
+
+            </div>
+
+
+            <div class="footer-links">
+
+                <div>
+
+                    <small>
+                        ACADEVENTS
+                    </small>
+
+
+                    <a href="{% url 'home' %}">
+                        Eventos
+                    </a>
+
+
+                    <a href="{% url 'planos:escolher' %}">
+                        Planos
+                    </a>
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        ORGANIZADORES
+                    </small>
+
+
+                    {% if user.is_authenticated and user.tipo_usuario == 'organizador' %}
+
+                        <a href="{% url 'eventos:painel_organizador' %}">
+                            Meu painel
+                        </a>
+
+
+                        <a href="{% url 'planos:escolher' %}">
+                            Criar evento
+                        </a>
+
+                    {% else %}
+
+                        <a href="{% url 'planos:escolher' %}">
+                            Divulgar evento
+                        </a>
+
+
+                        <a href="{% url 'planos:escolher' %}">
+                            Conhecer planos
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div>
+
+                    <small>
+                        TECNOLOGIA
+                    </small>
+
+
+                    <span>
+                        Django
+                    </span>
+
+
+                    <span>
+                        PostgreSQL
+                    </span>
+
+
+                    <span>
+                        Solana
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <span>
+                © 2026 AcadEvents
+            </span>
+
+
+            <span>
+                Eventos, tecnologia e conexões.
+            </span>
 
         </div>
 
     </footer>
+
+
+    <!-- =================================================
+         JAVASCRIPT PRINCIPAL
+    ================================================== -->
+
+    <script
+        src="{% static 'js/script.js' %}"
+    ></script>
+
+
+    {% block scripts %}
+
+    {% endblock %}
+
 
 </body>
 
